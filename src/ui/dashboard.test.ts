@@ -285,3 +285,17 @@ test('hovering the section already shown does not redraw it', () => {
   const { view, navButton } = setup('about'); const before = view().firstElementChild; hover(navButton('about'));
   expect(view().firstElementChild).toBe(before);
 });
+
+test('about opens with key facts and a lead paragraph', () => {
+  const { view, current } = setup('about'); const facts = [...view().querySelectorAll('.fact')];
+  expect(facts.map(f => f.querySelector('.fact-label')!.textContent)).toEqual(['NOW', 'STUDIED', 'BUILT']);
+  expect(facts[0].textContent).toContain('Engineer'); expect(facts[0].textContent).toContain('Acme Robotics');
+  expect(facts[1].textContent).toContain('B.E. Mechanical'); expect(facts[1].textContent).toContain('Test University');
+  expect(facts[2].textContent).toContain('2 projects');
+  expect(view().querySelector('.about-text p')!.classList.contains('lead')).toBe(true);
+  facts[2].querySelector('button')!.click(); expect(current()).toBe('projects');
+});
+test('about leaves out facts the content does not have', () => {
+  const { view } = setup('about', { ...FIXTURE, experience: [], education: [], projects: [] });
+  expect(view().querySelector('.fact')).toBeNull();
+});

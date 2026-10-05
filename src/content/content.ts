@@ -130,7 +130,7 @@ export const CONTENT: Content = {
   site: {
     repo: 'https://github.com/pavannanjunda/pavannanjunda.github.io',
     points: [
-      'Written in TypeScript with no framework and no runtime dependencies; about 12 KB of JavaScript after compression.',
+      'Written in TypeScript with no framework and no runtime dependencies; about 13 KB of JavaScript after compression.',
       'Three layers: one typed content file, a command shell that never touches the page, and the UI. The terminal and the panels render from the same content.',
       'Unit and UI tests run on every push, and a failing test blocks the deploy.',
       'Content is checked before it ships: an unsafe link or a duplicate project name fails the build.',

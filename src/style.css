@@ -1586,6 +1586,115 @@ button:focus-visible {
   }
 }
 
+/* Blocks keep their full height and the view scrolls; without this a tall
+   page squeezed its panels and clipped their text. */
+.view > :not(.terminal-panel) {
+  flex-shrink: 0;
+}
+
+/* About: large, readable text and a strip of key facts */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.fact {
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  animation: rise 0.45s backwards;
+}
+
+.fact:nth-child(2) { animation-delay: 0.08s; }
+.fact:nth-child(3) { animation-delay: 0.16s; }
+
+.fact-label {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.fact-value {
+  margin-top: 8px;
+  font-size: 19px;
+  line-height: 1.4;
+}
+
+.fact-value strong {
+  color: var(--bright);
+}
+
+.fact-link {
+  color: var(--bright);
+  font-size: 19px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 5px;
+}
+
+.about-text .panel-body,
+.site-notes .panel-body {
+  gap: 18px;
+  padding: 26px 28px;
+}
+
+.about-text p {
+  max-width: 72ch;
+  color: var(--text);
+  font-size: 19px;
+  line-height: 1.75;
+}
+
+.about-text p.lead {
+  color: var(--bright);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.site-notes ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.site-notes li {
+  position: relative;
+  max-width: 80ch;
+  padding-left: 30px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.site-notes li::before {
+  position: absolute;
+  top: 0.45em;
+  left: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  content: "";
+}
+
+.site-source {
+  display: inline-grid;
+  place-items: center;
+  align-self: flex-start;
+  text-decoration: none;
+}
+
 /* ---- Motion ---- */
 
 /* A slow aurora behind everything. */

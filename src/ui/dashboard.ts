@@ -185,16 +185,37 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
     ];
   },
 
-  about: content => {
-    const panels = [panel('ABOUT.TXT', content.about.length > 0 ? content.about.map(paragraph => el('p', '', paragraph)) : [empty()])];
+  about: (content, nav) => {
+    const fact = (label: string, value: Node[]): HTMLElement => {
+      const node = el('div', 'fact');
+      const body = el('div', 'fact-value');
+      body.append(...value);
+      node.append(el('div', 'fact-label', label), body);
+      return node;
+    };
+    const facts: HTMLElement[] = [];
+    const job = content.experience[0];
+    if (job) facts.push(fact('NOW', [el('strong', '', job.role), el('span', 'dim', ` at ${job.company}`)]));
+    const school = content.education[0];
+    if (school) facts.push(fact('STUDIED', [el('strong', '', school.degree), el('span', 'dim', ` at ${school.institution}`)]));
+    if (content.projects.length > 0) {
+      const count = content.projects.length === 1 ? '1 project' : `${content.projects.length} projects`;
+      facts.push(fact('BUILT', [button(count, () => nav('projects'), 'link-btn fact-link')]));
+    }
+    const strip = el('div', 'facts');
+    strip.append(...facts);
+
+    const paragraphs = content.about.map((paragraph, i) => el('p', i === 0 ? 'lead' : '', paragraph));
+    const text = panel('ABOUT.TXT', paragraphs.length > 0 ? paragraphs : [empty()], 'about-text');
+    const blocks = [...(facts.length > 0 ? [strip] : []), text];
     if (content.site) {
       const list = el('ul', '');
       list.append(...content.site.points.map(point => el('li', '', point)));
       const body: Node[] = [list];
-      if (content.site.repo !== undefined) body.push(linkEl({ label: 'View the source', href: content.site.repo }));
-      panels.push(panel('ABOUT_THIS_SITE', body));
+      if (content.site.repo !== undefined) body.push(linkEl({ label: 'View the source', href: content.site.repo }, 'btn site-source'));
+      blocks.push(panel('ABOUT_THIS_SITE', body, 'site-notes'));
     }
-    return panels;
+    return blocks;
   },
 
   experience: content => renderExperience(content),
