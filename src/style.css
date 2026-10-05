@@ -92,6 +92,8 @@ a {
 }
 
 .sidebar {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -207,6 +209,7 @@ a {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 .topbar {
@@ -283,14 +286,33 @@ a {
   scrollbar-color: var(--line) transparent;
 }
 
-/* Each section's blocks rise in, one after another. */
+/* Each section's blocks slide out from under the sidebar, one after another,
+   unveiled from their left edge. */
 .view > * {
-  animation: rise 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  /* backwards, not both: once done, the clip is dropped so shadows show. */
+  animation: emerge 0.45s cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
 }
 
-.view > :nth-child(2) { animation-delay: 0.06s; }
-.view > :nth-child(3) { animation-delay: 0.12s; }
-.view > :nth-child(n + 4) { animation-delay: 0.18s; }
+.view > :nth-child(2) { animation-delay: 0.05s; }
+.view > :nth-child(3) { animation-delay: 0.1s; }
+.view > :nth-child(n + 4) { animation-delay: 0.15s; }
+
+@keyframes emerge {
+  from {
+    opacity: 0;
+    clip-path: inset(-40px 100% -40px 0);
+    transform: translateX(-90px);
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    clip-path: inset(-40px -40px -40px 0);
+    transform: none;
+  }
+}
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px); }
