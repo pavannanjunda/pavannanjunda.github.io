@@ -1504,15 +1504,6 @@ button:focus-visible {
   color: var(--accent-ink);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
 /* Tablet: the overview drops to two columns. */
 @media (max-width: 1100px) {
   .grid {
@@ -1592,5 +1583,221 @@ button:focus-visible {
 
   .grid > .panel {
     grid-area: auto;
+  }
+}
+
+/* ---- Motion ---- */
+
+/* A slow aurora behind everything. */
+body::before {
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  background:
+    radial-gradient(38% 34% at 22% 28%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+    radial-gradient(34% 32% at 78% 68%, color-mix(in srgb, #a78bfa 14%, transparent), transparent 70%),
+    radial-gradient(28% 26% at 62% 18%, color-mix(in srgb, #34d399 10%, transparent), transparent 70%);
+  animation: drift 26s ease-in-out infinite alternate;
+  content: "";
+  pointer-events: none;
+}
+
+@keyframes drift {
+  from { transform: translate3d(-4%, -3%, 0) rotate(0deg) scale(1); }
+  to { transform: translate3d(5%, 4%, 0) rotate(8deg) scale(1.12); }
+}
+
+/* Theme changes fade instead of snapping. */
+body,
+.sidebar,
+.hero,
+.panel,
+.badge,
+.tl-item,
+.contact-card {
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.2s, box-shadow 0.2s;
+}
+
+/* Headline: a light sweeps across the title, and the big number bobs. */
+.hero h1 {
+  background: linear-gradient(100deg, var(--bright) 0%, var(--bright) 40%, var(--accent) 50%, var(--bright) 60%, var(--bright) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 5s linear infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 120% 0; }
+  to { background-position: -130% 0; }
+}
+
+.hero .index {
+  animation: bob 7s ease-in-out infinite alternate;
+}
+
+@keyframes bob {
+  from { transform: translateY(-6px); }
+  to { transform: translateY(8px); }
+}
+
+/* A glow follows the pointer across the card it is over. */
+.hero:hover,
+.panel:not(.terminal-panel):hover,
+.tl-item:hover,
+.contact-card:hover,
+.repo:hover {
+  background-image: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%);
+}
+
+.hero:hover,
+.panel:not(.terminal-panel, .skill-card):hover {
+  box-shadow: 0 14px 40px color-mix(in srgb, var(--accent) 14%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Sidebar: items nudge right, the brand dot radiates. */
+.nav-item {
+  transition: background 0.15s, color 0.15s, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.nav-item:hover,
+.nav-item.previewing {
+  transform: translateX(5px);
+}
+
+.brand::before {
+  animation: radiate 2.6s ease-out infinite;
+}
+
+@keyframes radiate {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  to { box-shadow: 0 0 0 12px transparent; }
+}
+
+.avatar {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.operator:hover .avatar {
+  transform: rotate(-8deg) scale(1.1);
+}
+
+/* Buttons: a shine sweeps across on hover. */
+.btn,
+.chip,
+.skill-filter,
+.tl-filter {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after,
+.chip::after,
+.skill-filter::after,
+.tl-filter::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 28%) 50%, transparent 70%);
+  transform: translateX(-130%);
+  content: "";
+  pointer-events: none;
+}
+
+.btn:hover::after,
+.chip:hover::after,
+.skill-filter:hover::after,
+.tl-filter:hover::after {
+  animation: sweep 0.7s ease;
+}
+
+@keyframes sweep {
+  to { transform: translateX(130%); }
+}
+
+.btn:active,
+.chip:active,
+.nav-item:active {
+  transform: scale(0.97);
+}
+
+/* Rows and lines inside a panel arrive one after another. */
+.table tr,
+.log-line,
+.stat,
+.row,
+.repo,
+.entry,
+.contact-card,
+.palette-item {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+:is(.table tr, .log-line, .stat, .row, .repo, .entry, .contact-card):nth-child(1) { animation-delay: 0.12s; }
+:is(.table tr, .log-line, .stat, .row, .repo, .entry, .contact-card):nth-child(2) { animation-delay: 0.18s; }
+:is(.table tr, .log-line, .stat, .row, .repo, .entry, .contact-card):nth-child(3) { animation-delay: 0.24s; }
+:is(.table tr, .log-line, .stat, .row, .repo, .entry, .contact-card):nth-child(4) { animation-delay: 0.3s; }
+:is(.table tr, .log-line, .stat, .row, .repo, .entry, .contact-card):nth-child(5) { animation-delay: 0.36s; }
+:is(.table tr, .log-line, .stat, .row, .repo, .entry, .contact-card):nth-child(6) { animation-delay: 0.42s; }
+:is(.table tr, .log-line, .stat, .row, .repo, .entry, .contact-card):nth-child(n + 7) { animation-delay: 0.48s; }
+
+/* Small things that respond to the pointer. */
+.tag {
+  transition: border-color 0.15s, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
+}
+
+.tag:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--hue, var(--accent)) 25%, transparent);
+}
+
+.stat-value {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.stat:hover .stat-value {
+  transform: scale(1.2);
+}
+
+.badge {
+  transition: border-color 0.15s, color 0.15s, transform 0.2s;
+}
+
+.badge:is(a, button):hover {
+  transform: translateY(-2px);
+}
+
+.matrix td.on::before {
+  animation: pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) backwards;
+  animation-delay: 0.35s;
+}
+
+@keyframes pop {
+  from { transform: scale(0); }
+}
+
+details.entry[open] summary::after {
+  animation: none;
+}
+
+.theme-toggle::before {
+  display: inline-block;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.theme-toggle:hover::before {
+  transform: rotate(180deg);
+}
+
+/* The reduced-motion rule below switches all of this off. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

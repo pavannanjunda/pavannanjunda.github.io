@@ -5,6 +5,7 @@ import { button, el, empty, initials, linkEl, panel } from './dom';
 import { copyButton, renderContact } from './contact';
 import { renderExperience } from './experience';
 import { type Repo, renderRepos } from './github';
+import { countUp, trackSpotlight } from './motion';
 import { mountPalette } from './palette';
 import { renderSkills } from './skills';
 import { mountTerminal } from './terminal';
@@ -147,7 +148,9 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
     ];
     for (const [label, value] of counts) {
       const stat = el('div', 'stat');
-      stat.append(el('span', 'stat-label', label), el('span', 'stat-value', pad(value)));
+      const number = el('span', 'stat-value');
+      countUp(number, value, pad);
+      stat.append(el('span', 'stat-label', label), number);
       stats.append(stat);
     }
 
@@ -404,6 +407,7 @@ export function mountDashboard(
   });
 
   applyTheme(initialTheme(), false);
+  trackSpotlight(view);
   root.classList.add('dash');
   root.replaceChildren(sidebar, main);
   const palette = mountPalette(root, [
