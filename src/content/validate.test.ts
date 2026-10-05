@@ -28,3 +28,16 @@ test('reports unsafe links wherever they appear', () => {
   expect(has(validateContent({ ...FIXTURE, projects: [{ ...FIXTURE.projects[0], links: [bad] }] }), 'projects[0].links[0].href')).toBe(true);
   expect(has(validateContent({ ...FIXTURE, resumeHref: 'http://a.dev/cv.pdf' }), 'resumeHref')).toBe(true);
 });
+
+test('reports unsafe or undescribed project media', () => {
+  const [a] = FIXTURE.projects;
+  const p = validateContent({ ...FIXTURE, projects: [{ ...a, media: [{ src: 'javascript:alert(1)', alt: 'x' }, { src: 'projects/a.png', alt: ' ' }] }] });
+  expect(has(p, 'projects[0].media[0].src')).toBe(true); expect(has(p, 'projects[0].media[1].alt')).toBe(true);
+  expect(validateContent({ ...FIXTURE, projects: [{ ...a, media: [{ src: 'projects/a.png', alt: 'The rig' }] }] })).toEqual([]);
+});
+test('reports an unsafe certificate link and a bad GitHub user', () => {
+  const cert = { name: 'ML', issuer: 'Udemy', year: '2025' };
+  expect(validateContent({ ...FIXTURE, certifications: [cert], githubUser: 'test-user' })).toEqual([]);
+  expect(has(validateContent({ ...FIXTURE, certifications: [{ ...cert, href: 'http://a.dev' }] }), 'certifications[0].href')).toBe(true);
+  expect(has(validateContent({ ...FIXTURE, githubUser: 'a/b?x' }), 'githubUser')).toBe(true);
+});

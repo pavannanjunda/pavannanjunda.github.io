@@ -30,9 +30,19 @@ export function validateContent(content: Content): string[] {
     else if (seen.has(project.slug)) problems.push(`${path}.slug: duplicate "${project.slug}"`);
     seen.add(project.slug);
     checkLinks(project.links, `${path}.links`);
+    (project.media ?? []).forEach((media, j) => {
+      if (!isSafeHref(media.src)) problems.push(`${path}.media[${j}].src: unsafe link "${media.src}"`);
+      if (media.alt.trim() === '') problems.push(`${path}.media[${j}].alt: must describe the image`);
+    });
   });
 
   checkLinks(content.contact, 'contact');
+  (content.certifications ?? []).forEach((cert, i) => {
+    if (cert.href !== undefined && !isSafeHref(cert.href)) problems.push(`certifications[${i}].href: unsafe link "${cert.href}"`);
+  });
+  if (content.githubUser !== undefined && !/^[a-zA-Z0-9-]+$/.test(content.githubUser)) {
+    problems.push(`githubUser: must be a GitHub username, got "${content.githubUser}"`);
+  }
   if (content.resumeHref !== undefined && !isSafeHref(content.resumeHref)) {
     problems.push(`resumeHref: unsafe link "${content.resumeHref}"`);
   }

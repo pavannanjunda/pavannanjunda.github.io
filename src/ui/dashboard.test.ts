@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { FIXTURE } from '../content/fixture';
 import type { Content } from '../content/types';
 import { SECTIONS, mountDashboard } from './dashboard';
@@ -15,7 +15,7 @@ const setup = (route?: string, content: Content = FIXTURE) => {
 };
 
 test('sections are in a fixed order', () => expect(SECTIONS.map(s => s.id)).toEqual(
-  ['terminal', 'dashboard', 'about', 'experience', 'education', 'projects', 'skills', 'contact']));
+  ['terminal', 'dashboard', 'about', 'experience', 'education', 'certifications', 'projects', 'skills', 'contact']));
 test('the sidebar shows the brand, every section and who is online', () => {
   const { root } = setup();
   expect(root.classList.contains('dash')).toBe(true);
@@ -53,7 +53,7 @@ test('a sidebar button switches section and reports the route', () => {
   const { root, view, navButton, current, routes } = setup(); navButton('skills').click();
   expect(current()).toBe('skills'); expect(routes).toEqual(['skills']);
   expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / SKILLS');
-  expect(view().querySelector('.hero .index')!.textContent).toBe('07');
+  expect(view().querySelector('.hero .index')!.textContent).toBe('08');
   expect(view().textContent).toContain('Languages'); expect([...view().querySelectorAll('.tag')].map(t => t.textContent)).toEqual(['C++', 'Python']);
 });
 test('showing the current route again does nothing', () => {
@@ -132,7 +132,7 @@ test('number keys switch sections', () => {
   const { current, navButton } = setup();
   expect(navButton('about').dataset.key).toBe('3');
   press(document.body, '3'); expect(current()).toBe('about');
-  press(document.body, '9'); expect(current()).toBe('about');
+  press(document.body, '0'); expect(current()).toBe('about');
   press(document.body, '2', { ctrlKey: true }); expect(current()).toBe('about');
 });
 test('number keys are left alone while typing', () => {
@@ -174,4 +174,68 @@ test('each experience is a closed dropdown that holds its details', () => {
   expect(summary.textContent).not.toContain('Built a thing.');
   expect(items[0].querySelector('.entry-body')!.textContent).toContain('Built a thing.');
   expect(items[1].querySelector('.entry-body')!.textContent).toBe('No details added yet.');
+});
+
+test('Ctrl+K opens the palette, even while typing, and picking navigates', () => {
+  const { root, view, current } = setup(); const box = root.querySelector<HTMLElement>('.palette')!;
+  expect(box.hidden).toBe(true);
+  expect(press(view().querySelector('#cmd')!, 'k', { ctrlKey: true }).defaultPrevented).toBe(true); expect(box.hidden).toBe(false);
+  const input = box.querySelector<HTMLInputElement>('.palette-input')!; input.value = 'beta'; input.dispatchEvent(new Event('input', { bubbles: true }));
+  press(input, 'Enter'); expect(box.hidden).toBe(true);
+  expect(current()).toBe('projects'); expect(view().querySelector('.project-detail')!.textContent).toContain('Beta Arm');
+});
+test('the search button opens the palette, which lists sections and projects', () => {
+  const { root } = setup(); root.querySelector<HTMLButtonElement>('.palette-open')!.click();
+  const labels = [...root.querySelectorAll('.palette-item .palette-label')].map(l => l.textContent);
+  expect(labels).toEqual([...SECTIONS.map(s => s.label), 'Alpha Bot', 'Beta Arm']);
+});
+test('typing in the palette does not trigger section shortcuts', () => {
+  const { root, current } = setup(); root.querySelector<HTMLButtonElement>('.palette-open')!.click();
+  press(root.querySelector('.palette-input')!, '3'); expect(current()).toBe('terminal');
+});
+
+const flush = () => new Promise(resolve => setTimeout(resolve, 0));
+test('certifications lists each certificate with its credential and link', () => {
+  const certifications = [{ name: 'Machine Learning', issuer: 'Udemy', year: '2025', credential: 'ABC123', href: 'https://example.com/cert' }, { name: 'Cloud', issuer: 'NPTEL', year: '2025' }];
+  const { view } = setup('certifications', { ...FIXTURE, certifications }); const text = view().textContent!;
+  expect(text).toContain('Machine Learning'); expect(text).toContain('Udemy'); expect(text).toContain('Credential ID: ABC123');
+  expect(view().querySelectorAll('a[href="https://example.com/cert"]').length).toBe(1); expect(view().querySelectorAll('.entry').length).toBe(2);
+  expect(setup('certifications').view().textContent).toContain('Nothing here yet.');
+});
+test('a skill used by a project opens the list of those projects', () => {
+  const { view, current } = setup('skills');
+  const [cpp, python] = [...view().querySelectorAll<HTMLElement>('.tag')];
+  expect(cpp.tagName).toBe('BUTTON'); expect(python.tagName).toBe('SPAN'); expect(cpp.getAttribute('aria-expanded')).toBe('false');
+  cpp.click(); expect(cpp.getAttribute('aria-expanded')).toBe('true'); expect(view().querySelector('.used-in')!.textContent).toContain('Alpha Bot');
+  cpp.click(); expect(view().querySelector('.used-in')).toBeNull(); expect(cpp.getAttribute('aria-expanded')).toBe('false');
+  cpp.click(); view().querySelector<HTMLButtonElement>('.used-in button')!.click();
+  expect(current()).toBe('projects'); expect(view().querySelector('.project-detail')!.textContent).toContain('Alpha Bot');
+});
+test('an email link gets a copy button when the clipboard is available', async () => {
+  expect(setup('contact').view().querySelector('.copy')).toBeNull();
+  const writeText = vi.fn(async () => {}); Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+  try {
+    const { view } = setup('contact'); const copy = view().querySelectorAll<HTMLButtonElement>('.copy');
+    expect(copy.length).toBe(3); copy[0].click(); await flush();
+    expect(writeText).toHaveBeenCalledWith('test@example.com'); expect(copy[0].textContent).toBe('COPIED');
+  } finally { delete (navigator as { clipboard?: unknown }).clipboard; }
+});
+test('a project with a problem, result and media reads as a case study', () => {
+  const [a, b] = FIXTURE.projects;
+  const study = { ...a, problem: 'Parts were checked by eye.', result: 'Checks now take seconds.', media: [{ src: 'projects/rig.png', alt: 'The camera rig' }, { src: 'javascript:alert(1)', alt: 'bad' }] };
+  const { view } = setup('projects', { ...FIXTURE, projects: [study, b] }); const detail = view().querySelector('.project-detail')!;
+  expect([...detail.querySelectorAll('h4')].map(h => h.textContent)).toEqual(['PROBLEM', 'WHAT I DID', 'RESULT']);
+  expect(detail.textContent).toContain('Parts were checked by eye.'); expect(detail.textContent).toContain('Checks now take seconds.');
+  const images = detail.querySelectorAll('img'); expect(images.length).toBe(1);
+  expect(images[0].getAttribute('src')).toBe('projects/rig.png'); expect(images[0].alt).toBe('The camera rig'); expect(images[0].getAttribute('loading')).toBe('lazy');
+  expect(setup('projects').view().querySelector('.project-detail h4')).toBeNull();
+});
+test('the overview lists GitHub repositories once, when a user is set', async () => {
+  const loadRepos = vi.fn(async () => [{ name: 'rig', description: 'A rig', language: 'C++', stars: 1, url: 'https://github.com/test-user/rig' }]);
+  const root = document.createElement('div');
+  const dash = mountDashboard(root, { ...FIXTURE, githubUser: 'test-user' }, { initialRoute: 'dashboard', loadRepos });
+  await flush(); expect(root.querySelector('.repos a[href="https://github.com/test-user/rig"]')).not.toBeNull();
+  dash.show('about'); dash.show('dashboard'); await flush();
+  expect(loadRepos).toHaveBeenCalledTimes(1); expect(loadRepos).toHaveBeenCalledWith('test-user'); expect(root.querySelector('.repos a')).not.toBeNull();
+  expect(setup('dashboard').view().querySelector('.repos')).toBeNull();
 });

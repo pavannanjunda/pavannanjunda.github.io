@@ -412,6 +412,15 @@ a {
   letter-spacing: 0.1em;
 }
 
+.panel-count {
+  margin-left: auto;
+  padding: 0 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--dim);
+  font-size: 10px;
+}
+
 .panel-head::before {
   width: 8px;
   height: 8px;
@@ -656,6 +665,487 @@ details.entry summary:focus-visible {
   transform: translateY(-1px);
 }
 
+/* Skills: a filter bar, colour-coded group cards, and a usage matrix */
+
+.skill-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.skill-search,
+.palette-input {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--bright);
+  font-family: var(--mono);
+  font-size: max(16px, 1em);
+}
+
+.skill-search {
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+
+.skill-search:focus-visible,
+.palette-input:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.skill-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill-filter {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.skill-filter:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.skill-filter[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Each group card takes the next hue. */
+.skill-card { --hue: #22d3ee; }
+.skill-card:nth-child(6n + 2) { --hue: #a78bfa; }
+.skill-card:nth-child(6n + 3) { --hue: #fbbf24; }
+.skill-card:nth-child(6n + 4) { --hue: #34d399; }
+.skill-card:nth-child(6n + 5) { --hue: #fb7185; }
+.skill-card:nth-child(6n + 6) { --hue: #60a5fa; }
+
+.skill-card {
+  border-top: 3px solid var(--hue);
+  transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
+}
+
+.skill-card:hover {
+  border-color: var(--hue);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--hue) 22%, transparent);
+  transform: translateY(-3px);
+}
+
+.skill-card .panel-head::before {
+  background: var(--hue);
+}
+
+.skill-card .tag {
+  animation: rise 0.3s both;
+}
+
+.skill-card .tag:hover {
+  border-color: var(--hue);
+}
+
+/* A skill that a project used: tinted, with the project count. */
+.tag-btn {
+  border-color: color-mix(in srgb, var(--hue, var(--accent)) 55%, var(--line));
+  background: color-mix(in srgb, var(--hue, var(--accent)) 14%, var(--raised));
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tag-btn::after {
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--hue, var(--accent));
+  color: #020617;
+  font-size: 10px;
+  font-weight: 700;
+  content: attr(data-count);
+}
+
+.tag-btn[aria-expanded="true"] {
+  border-color: var(--hue, var(--accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hue, var(--accent)) 25%, transparent);
+}
+
+.used-in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--hue, var(--accent));
+  border-radius: 0 8px 8px 0;
+  background: var(--raised);
+  font-size: 13px;
+  animation: rise 0.25s both;
+}
+
+.used-in .link-btn {
+  color: var(--accent);
+}
+
+.matrix-scroll {
+  overflow-x: auto;
+}
+
+.matrix {
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.matrix th {
+  padding: 8px 12px;
+  color: var(--dim);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.matrix thead th {
+  font-size: 11px;
+  text-align: center;
+}
+
+.matrix td {
+  min-width: 44px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.matrix tbody th {
+  border-top: 1px solid var(--line);
+}
+
+.matrix td::before {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  content: "";
+}
+
+.matrix td.on::before {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.matrix tbody tr:hover > * {
+  background: var(--raised);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Case studies, repositories, copy button */
+
+.panel h4 {
+  margin-top: 4px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.gallery figure {
+  margin: 0;
+}
+
+.gallery img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.repos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.repo {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--raised);
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.repo:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.repo-name {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.repo p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.copy {
+  margin-left: auto;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  cursor: pointer;
+  flex: none;
+  min-height: 28px;
+}
+
+.copy:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Contact: a card per channel and a message composer */
+
+.contact-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.contact-card {
+  --hue: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--hue);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.15s;
+}
+
+.contact-email { --hue: #22d3ee; }
+.contact-linkedin { --hue: #60a5fa; }
+.contact-github { --hue: #a78bfa; }
+.contact-resume { --hue: #34d399; }
+
+.contact-card:hover {
+  border-color: var(--hue);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--hue) 24%, transparent);
+  transform: translateY(-4px);
+}
+
+.contact-kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.contact-kind::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hue);
+  box-shadow: 0 0 10px var(--hue);
+  content: "";
+}
+
+.contact-value {
+  color: var(--bright);
+  font-family: var(--mono);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.contact-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.contact-open {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.contact-actions .copy {
+  min-height: 40px;
+  margin-left: 0;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.compose {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 640px;
+}
+
+.compose-name,
+.compose-message {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--bright);
+  font-family: var(--mono);
+  font-size: max(16px, 1em);
+  resize: vertical;
+}
+
+.compose-name:focus-visible,
+.compose-message:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.compose-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compose-send {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+/* Command palette */
+
+.palette {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  padding: 12vh 16px 16px;
+  background: rgb(2 6 23 / 55%);
+  backdrop-filter: blur(3px);
+}
+
+.palette-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(560px, 100%);
+  max-height: 70vh;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgb(0 0 0 / 45%);
+  animation: rise 0.2s both;
+}
+
+.palette-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.palette-item:hover,
+.palette-item[aria-selected="true"] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.palette-hint,
+.palette-empty {
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.palette-empty {
+  padding: 12px;
+}
+
+.palette-open {
+  color: var(--bright);
+  cursor: pointer;
+}
+
+.palette-open::after {
+  margin-left: 8px;
+  color: var(--dim);
+  content: "Ctrl K";
+}
+
+.palette-open:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Terminal: dark in both themes, like a real one. */
 
 .terminal-panel {
@@ -714,6 +1204,11 @@ details.entry summary:focus-visible {
   font-family: var(--mono);
   font-size: min(12px, 2.6vw);
   line-height: 1;
+}
+
+.boot-line {
+  animation: rise 0.3s both;
+  animation-delay: calc(var(--i) * 45ms);
 }
 
 .line {
@@ -866,7 +1361,11 @@ button:focus-visible {
     padding: 0 16px;
   }
 
-  .badges .badge:not(.theme-toggle) {
+  .badges .badge:not(.theme-toggle, .palette-open) {
+    display: none;
+  }
+
+  .palette-open::after {
     display: none;
   }
 

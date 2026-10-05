@@ -13,3 +13,5 @@ test('lists all slugs after a bare "projects "', () => expect(c('projects ')).to
 test('commands without arguments complete nothing after the name', () => expect(c('about x')).toEqual({ value: 'about x', options: [] }));
 test('is case-insensitive', () => expect(c('PRO').value).toBe('projects '));
 test('completes a section after open', () => expect(c('open sk')).toEqual({ value: 'open skills ', options: [] }));
+test('completes a file after cat', () => expect(c('cat ab')).toEqual({ value: 'cat about.txt ', options: [] }));
+test('hidden commands are not offered', () => expect(c('su')).toEqual({ value: 'su', options: [] }));

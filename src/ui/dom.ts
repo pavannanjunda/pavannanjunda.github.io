@@ -22,3 +22,22 @@ export function linkEl(link: Link, className = ''): HTMLElement {
   }
   return a;
 }
+
+export function button(label: string, onClick: () => void, className = 'btn'): HTMLButtonElement {
+  const node = el('button', className, label);
+  node.type = 'button';
+  node.addEventListener('click', onClick);
+  return node;
+}
+
+export function panel(title: string, body: Node[], className = ''): HTMLElement {
+  const node = el('section', `panel ${className}`.trim());
+  const content = el('div', 'panel-body');
+  content.append(...body);
+  const head = el('h2', 'panel-head');
+  head.append(el('span', 'panel-title', title));
+  node.append(head, content);
+  return node;
+}
+
+export const empty = (): HTMLElement => el('p', 'dim', 'Nothing here yet.');

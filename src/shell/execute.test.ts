@@ -7,11 +7,12 @@ import { toText } from './output';
 const run = (s: string) => toText(execute(s, FIXTURE));
 
 test('command order is fixed', () => expect(COMMANDS.map(c => c.name)).toEqual(
-  ['help', 'about', 'experience', 'education', 'projects', 'skills', 'contact', 'resume', 'open', 'clear']));
+  ['help', 'about', 'experience', 'education', 'projects', 'skills', 'contact', 'resume', 'open', 'whoami', 'ls', 'cat', 'clear', 'sudo']));
 test('blank input yields no lines', () => expect(execute('  ', FIXTURE)).toEqual({ lines: [] }));
 test('help lists every command as a tappable name', () => {
   const r = execute('help', FIXTURE);
-  for (const c of COMMANDS) expect(r.lines.some(l => l.some(s => s.command === c.name))).toBe(true);
+  for (const c of COMMANDS.filter(c => !c.hidden)) expect(r.lines.some(l => l.some(s => s.command === c.name))).toBe(true);
+  expect(toText(r)).not.toContain('sudo');
   expect(toText(r)).toContain('things I\'ve built');
 });
 test('about prints each paragraph', () => { expect(run('about')).toContain('First paragraph.'); expect(run('about')).toContain('Second paragraph.'); });
@@ -74,3 +75,29 @@ test('open without a section, or with an unknown one, explains itself', () => {
   const bad = execute('open nope', FIXTURE); expect(bad.navigate).toBeUndefined();
   expect(bad.lines[0]).toEqual([{ text: 'no such section: nope', style: 'error' }]); expect(toText(bad)).toContain('Available: dashboard, about');
 });
+
+test('whoami prints the name and tagline', () => expect(run('whoami')).toBe('Test User\nRobotics engineer'));
+test('ls lists files that cat can read', () => {
+  const r = execute('ls', FIXTURE);
+  expect(toText(r)).toBe('about.txt  experience.txt  education.txt  skills.txt  contact.txt  projects/');
+  expect(r.lines[0].some(s => s.command === 'cat about.txt')).toBe(true); expect(r.lines[0].some(s => s.command === 'projects')).toBe(true);
+});
+test('cat reads a section file or a project', () => {
+  expect(run('cat about.txt')).toBe(run('about')); expect(run('cat SKILLS')).toBe(run('skills'));
+  expect(run('cat alpha-bot')).toContain('Alpha Bot');
+});
+test('cat without a file, or with an unknown one, explains itself', () => {
+  expect(run('cat')).toContain('Usage: cat <file>');
+  expect(execute('cat nope.txt', FIXTURE).lines[0]).toEqual([{ text: 'cat: nope.txt: No such file', style: 'error' }]);
+});
+test('sudo is a hidden joke that ends with the contact links', () => {
+  const r = execute('sudo hire-me', FIXTURE);
+  expect(toText(r)).toContain('No password needed'); expect(r.lines.some(l => l.some(s => s.href === 'mailto:test@example.com'))).toBe(true);
+});
+test('education lists certifications after schools', () => {
+  const certifications = [{ name: 'Machine Learning', issuer: 'Udemy', year: '2025' }];
+  const text = toText(execute('education', { ...FIXTURE, certifications }));
+  expect(text).toContain('Certifications'); expect(text).toContain('- Machine Learning — Udemy, 2025');
+  expect(run('education')).not.toContain('Certifications');
+});
+test('open can reach certifications', () => expect(execute('open certifications', FIXTURE).navigate).toBe('certifications'));

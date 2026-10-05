@@ -77,18 +77,40 @@ export const CONTENT: Content = {
       tech: ['TensorFlow', 'OpenCV'],
       links: [],
     },
+    // The resume gives only the titles of the next three. Add `details`,
+    // `problem`, `result` and `media` here when there is more to say.
+    {
+      slug: 'word-explorer',
+      name: 'Word Explorer Interface using WordNet',
+      summary: 'An interface for exploring words with WordNet',
+      details: [],
+      tech: ['WordNet', 'NLP'],
+      links: [],
+    },
+    {
+      slug: 'jargon-simplifier',
+      name: 'Jargon Simplification Interface',
+      summary: 'An interface that simplifies jargon',
+      details: [],
+      tech: ['NLP'],
+      links: [],
+    },
+    {
+      slug: 'synthetic-image-eval',
+      name: 'Automated Evaluation of Synthetically Generated Images',
+      summary: 'Automated evaluation of generated images',
+      details: [],
+      tech: ['Generative AI'],
+      links: [],
+    },
   ],
 
   skills: [
     { group: 'Languages', items: ['Python'] },
     { group: 'ML & vision', items: ['TensorFlow', 'OpenCV', 'Faster R-CNN'] },
     { group: 'Hardware', items: ['Raspberry Pi', 'Arduino'] },
-    { group: 'Areas', items: ['Machine Learning', 'Computer Vision', 'NLP', 'IoT', 'Data Analytics', 'Cloud Computing'] },
+    { group: 'Areas', items: ['Machine Learning', 'Computer Vision', 'NLP', 'Generative AI', 'IoT', 'Data Analytics', 'Cloud Computing'] },
     { group: 'Leadership', items: ['Team Management', 'Event Management', 'Project Management'] },
-    {
-      group: 'Certifications',
-      items: ['Cloud Computing (NPTEL, 2025)', 'Introduction to GenAI (Google Cloud, 2025)', 'Machine Learning (Udemy, 2025)'],
-    },
   ],
 
   contact: [
@@ -96,4 +118,12 @@ export const CONTENT: Content = {
     { label: 'linkedin.com/in/pavan-nanjunda', href: 'https://www.linkedin.com/in/pavan-nanjunda' },
     { label: 'github.com/pavannanjunda', href: 'https://github.com/pavannanjunda' },
   ],
+
+  certifications: [
+    { name: 'Cloud Computing', issuer: 'NPTEL', year: '2025', credential: 'NPTEL25CS11S942201852' },
+    { name: 'Introduction to GenAI', issuer: 'Google Cloud', year: '2025' },
+    { name: 'Machine Learning', issuer: 'Udemy', year: '2025' },
+  ],
+
+  githubUser: 'pavannanjunda',
 };

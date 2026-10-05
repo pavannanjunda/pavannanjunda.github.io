@@ -141,3 +141,11 @@ test('Escape leaves the prompt', () => {
   const { input, key } = setup(); input.focus(); expect(document.activeElement).toBe(input);
   key('Escape'); expect(document.activeElement).not.toBe(input);
 });
+
+test('boots with a staggered intro that later output does not join', () => {
+  const { root, out, submit } = setup(); const lines = [...root.querySelector('.output')!.children] as HTMLElement[];
+  expect(out()).toContain('$ init portfolio --user test'); expect(out()).toContain('[ok] loaded projects: 2, roles: 1, skills: 2');
+  expect(lines.every(l => l.classList.contains('boot-line'))).toBe(true);
+  expect(lines[0].style.getPropertyValue('--i')).toBe('0'); expect(lines[3].style.getPropertyValue('--i')).toBe('3');
+  submit('about'); expect(root.querySelector('.output')!.lastElementChild!.classList.contains('boot-line')).toBe(false);
+});

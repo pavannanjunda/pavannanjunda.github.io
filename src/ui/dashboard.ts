@@ -1,6 +1,11 @@
 import type { Content, Project } from '../content/types';
+import { isSafeHref } from '../content/validate';
 import { dateRange } from '../shell/commands';
-import { el, initials, linkEl } from './dom';
+import { button, el, empty, initials, linkEl, panel } from './dom';
+import { copyButton, renderContact } from './contact';
+import { type Repo, renderRepos } from './github';
+import { mountPalette } from './palette';
+import { renderSkills } from './skills';
 import { mountTerminal } from './terminal';
 
 export interface Section { id: string; label: string; summary: string }
@@ -12,8 +17,9 @@ export const SECTIONS: Section[] = [
   { id: 'about', label: 'ABOUT', summary: 'Who I am.' },
   { id: 'experience', label: 'EXPERIENCE', summary: 'Roles and training, newest first. Select one for details.' },
   { id: 'education', label: 'EDUCATION', summary: 'Where I studied.' },
+  { id: 'certifications', label: 'CERTIFICATIONS', summary: 'Courses I have completed.' },
   { id: 'projects', label: 'PROJECTS', summary: "Things I've built. Select one for details." },
-  { id: 'skills', label: 'SKILLS', summary: 'Tools I use.' },
+  { id: 'skills', label: 'SKILLS', summary: 'Tools I use. Highlighted ones open the projects that used them.' },
   { id: 'contact', label: 'CONTACT', summary: 'How to reach me.' },
 ];
 
@@ -34,21 +40,6 @@ function initialTheme(): 'light' | 'dark' {
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 
-function button(label: string, onClick: () => void, className = 'btn'): HTMLButtonElement {
-  const node = el('button', className, label);
-  node.type = 'button';
-  node.addEventListener('click', onClick);
-  return node;
-}
-
-function panel(title: string, body: Node[], className = ''): HTMLElement {
-  const node = el('section', `panel ${className}`.trim());
-  const content = el('div', 'panel-body');
-  content.append(...body);
-  node.append(el('h2', 'panel-head', title), content);
-  return node;
-}
-
 function hero(title: string, lines: string[], index: number, actions: HTMLElement[] = []): HTMLElement {
   const node = el('section', 'hero');
   const number = el('div', 'index', pad(index));
@@ -61,8 +52,6 @@ function hero(title: string, lines: string[], index: number, actions: HTMLElemen
   }
   return node;
 }
-
-const empty = (): HTMLElement => el('p', 'dim', 'Nothing here yet.');
 
 function projectTable(projects: Project[], nav: Navigate, selected?: string): HTMLElement {
   if (projects.length === 0) return empty();
@@ -84,10 +73,28 @@ function projectTable(projects: Project[], nav: Navigate, selected?: string): HT
 
 function projectDetail(project: Project): HTMLElement {
   const body: Node[] = [el('h3', '', project.name), el('p', '', project.summary)];
+  const isCaseStudy = project.problem !== undefined || project.result !== undefined;
+  if (project.problem !== undefined) body.push(el('h4', '', 'PROBLEM'), el('p', '', project.problem));
   if (project.details.length > 0) {
+    if (isCaseStudy) body.push(el('h4', '', 'WHAT I DID'));
     const list = el('ul', '');
     list.append(...project.details.map(detail => el('li', '', detail)));
     body.push(list);
+  }
+  if (project.result !== undefined) body.push(el('h4', '', 'RESULT'), el('p', '', project.result));
+  const media = (project.media ?? []).filter(item => isSafeHref(item.src));
+  if (media.length > 0) {
+    const gallery = el('div', 'gallery');
+    gallery.append(...media.map(item => {
+      const figure = el('figure', '');
+      const image = el('img', '');
+      image.src = item.src;
+      image.alt = item.alt;
+      image.setAttribute('loading', 'lazy');
+      figure.append(image, el('figcaption', 'dim small', item.alt));
+      return figure;
+    }));
+    body.push(gallery);
   }
   if (project.tech.length > 0) {
     const stack = el('div', 'tags');
@@ -109,6 +116,7 @@ function contactRows(content: Content): Node[] {
   return links.map(link => {
     const row = el('div', 'row');
     row.append(el('span', 'dim', '>'), linkEl(link));
+    if (link.href.startsWith('mailto:') && navigator.clipboard) row.append(copyButton(link.href.slice('mailto:'.length).split('?')[0]));
     return row;
   });
 }
@@ -211,6 +219,17 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
       : [empty()]),
   ],
 
+  certifications: content => {
+    const certifications = content.certifications ?? [];
+    return [panel('CERTIFICATIONS', certifications.length > 0
+      ? certifications.map(cert => {
+        const node = entry(cert.name, cert.issuer, cert.year, cert.credential ? [`Credential ID: ${cert.credential}`] : []);
+        if (cert.href !== undefined) node.append(linkEl({ label: 'View certificate', href: cert.href }));
+        return node;
+      })
+      : [empty()])];
+  },
+
   projects: (content, nav, arg) => {
     const selected = content.projects.find(project => project.slug === arg) ?? content.projects[0];
     const split = el('div', 'split');
@@ -219,24 +238,15 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
     return [split];
   },
 
-  skills: content => {
-    if (content.skills.length === 0) return [panel('SKILLS', [empty()])];
-    const grid = el('div', 'cards');
-    grid.append(...content.skills.map(group => {
-      const tags = el('div', 'tags');
-      tags.append(...group.items.map(item => el('span', 'tag', item)));
-      return panel(group.group, [tags]);
-    }));
-    return [grid];
-  },
+  skills: (content, nav) => renderSkills(content, nav),
 
-  contact: content => [panel('CONTACT', contactRows(content))],
+  contact: content => renderContact(content),
 };
 
 export function mountDashboard(
   root: HTMLElement,
   content: Content,
-  options?: { initialRoute?: string; onNavigate?: (route: string) => void },
+  options?: { initialRoute?: string; onNavigate?: (route: string) => void; loadRepos?: (user: string) => Promise<Repo[]> },
 ): { show(route: string): void } {
   const html = root.ownerDocument.documentElement;
   const applyTheme = (theme: 'light' | 'dark', remember: boolean) => {
@@ -283,8 +293,10 @@ export function mountDashboard(
   const tick = () => { clock.textContent = new Date().toLocaleTimeString('en-GB'); };
   tick();
   setInterval(tick, 1000);
+  const paletteOpen = button('SEARCH', () => palette.open(), 'badge palette-open');
+  paletteOpen.setAttribute('aria-keyshortcuts', 'Control+K');
   const themeToggle = button('', () => applyTheme(html.dataset.theme === 'dark' ? 'light' : 'dark', true), 'badge theme-toggle');
-  badges.append(el('span', 'badge ok', 'SYS: OK'), el('span', 'badge', `${pad(content.projects.length)} PROJECTS`), clock, themeToggle);
+  badges.append(el('span', 'badge ok', 'SYS: OK'), el('span', 'badge', `${pad(content.projects.length)} PROJECTS`), clock, paletteOpen, themeToggle);
   const topbar = el('header', 'topbar');
   topbar.append(crumbs, badges);
   const view = el('main', 'view');
@@ -301,6 +313,14 @@ export function mountDashboard(
       terminal = panel('TERMINAL', [host], 'terminal-panel');
     }
     return terminal;
+  };
+
+  // Fetched once, the first time the overview is shown.
+  let repos: HTMLElement | undefined;
+  const reposPanel = (): HTMLElement[] => {
+    if (content.githubUser === undefined) return [];
+    repos ??= panel('GITHUB', [renderRepos(content.githubUser, options?.loadRepos)]);
+    return [repos];
   };
 
   let currentRoute: string | undefined;
@@ -320,7 +340,7 @@ export function mountDashboard(
 
     const index = SECTIONS.indexOf(section) + 1;
     if (section.id === 'dashboard') {
-      view.replaceChildren(...VIEWS.dashboard(content, navigate));
+      view.replaceChildren(...VIEWS.dashboard(content, navigate), ...reposPanel());
     } else if (section.id === 'terminal') {
       view.replaceChildren(terminalPanel());
     } else {
@@ -344,7 +364,13 @@ export function mountDashboard(
 
   // 1-8 switch sections and / jumps to the prompt, unless the visitor is typing.
   root.ownerDocument.addEventListener('keydown', event => {
-    if (!root.isConnected || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!root.isConnected) return;
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      palette.open();
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     if ((event.target as Element | null)?.closest?.('input, textarea, select')) return;
     const section = SECTIONS[Number(event.key) - 1];
     if (/^[1-9]$/.test(event.key) && section) {
@@ -359,6 +385,10 @@ export function mountDashboard(
   applyTheme(initialTheme(), false);
   root.classList.add('dash');
   root.replaceChildren(sidebar, main);
+  const palette = mountPalette(root, [
+    ...SECTIONS.map(section => ({ label: section.label, hint: 'section', route: section.id })),
+    ...content.projects.map(project => ({ label: project.name, hint: 'project', route: `projects/${project.slug}` })),
+  ], route => show(route));
   render(options?.initialRoute ?? SECTIONS[0].id);
 
   return { show };

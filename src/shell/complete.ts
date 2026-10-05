@@ -17,7 +17,7 @@ export function complete(raw: string, content: Content): { value: string; option
   const word = words[words.length - 1];
   const head = completingName ? '' : `${words[0]} `;
   const candidates = completingName
-    ? COMMANDS.map(command => command.name)
+    ? COMMANDS.filter(command => !command.hidden).map(command => command.name)
     : findCommand(words[0])?.args?.(content) ?? [];
 
   const matches = candidates.filter(candidate => candidate.startsWith(word));

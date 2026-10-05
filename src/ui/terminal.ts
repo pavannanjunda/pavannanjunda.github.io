@@ -11,6 +11,9 @@ import { renderLine } from './render';
 
 const MAX_HASH_COMMAND = 100;
 
+// Commands that need an argument, or are extras, get no tap-to-run chip.
+const NO_CHIP = new Set(['clear', 'open', 'whoami', 'ls', 'cat', 'sudo']);
+
 // A deep link is untrusted text that ends up on the page, so it is kept to
 // one short line.
 export function readHashCommand(hash: string): string | undefined {
@@ -117,7 +120,7 @@ export function mountTerminal(
   }
 
   for (const command of COMMANDS) {
-    if (command.name === 'clear' || command.name === 'open') continue;
+    if (NO_CHIP.has(command.name)) continue;
     const chip = el('button', 'chip', command.name);
     chip.type = 'button';
     chip.addEventListener('click', () => run(command.name));
@@ -177,6 +180,11 @@ export function mountTerminal(
     );
   }
 
+  const skillCount = content.skills.reduce((sum, group) => sum + group.items.length, 0);
+  print([
+    [{ text: `$ init portfolio --user ${content.handle}`, style: 'dim' }],
+    [{ text: `[ok] loaded projects: ${content.projects.length}, roles: ${content.experience.length}, skills: ${skillCount}`, style: 'dim' }],
+  ]);
   const art = asciiBanner(content.name);
   if (art.length > 0) {
     const pre = el('pre', 'ascii', art.join('\n'));
@@ -191,6 +199,11 @@ export function mountTerminal(
     [],
     [{ text: "Type 'help' or tap a command below.", style: 'dim' }],
   ]);
+  // The intro types itself out line by line; later output appears at once.
+  [...output.children].forEach((line, i) => {
+    line.classList.add('boot-line');
+    (line as HTMLElement).style.setProperty('--i', String(i));
+  });
   if (options?.initialCommand !== undefined) run(options.initialCommand);
 
   return { run };
