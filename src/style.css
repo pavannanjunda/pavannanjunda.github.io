@@ -137,7 +137,6 @@ a {
 .nav-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   min-height: 40px;
   padding: 0 12px;
   border: 0;
@@ -151,17 +150,6 @@ a {
   text-align: left;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
-}
-
-/* The number key that jumps to this section. */
-.nav-item::after {
-  padding: 0 6px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 10px;
-  content: attr(data-key);
 }
 
 .nav-item:hover {
@@ -864,8 +852,7 @@ button:focus-visible {
     scrollbar-width: none;
   }
 
-  .operator,
-  .nav-item::after {
+  .operator {
     display: none;
   }
 
