@@ -19,6 +19,11 @@ test('experience and education print their entries', () => {
   expect(run('experience')).toContain('Engineer'); expect(run('experience')).toContain('Acme Robotics'); expect(run('experience')).toContain('Built a thing.');
   expect(run('education')).toContain('B.E. Mechanical'); expect(run('education')).toContain('Test University');
 });
+test('education prints one year when start and end are the same', () => {
+  const school = { institution: 'Test School', degree: 'Class 10', start: '2020', end: '2020' };
+  const r = toText(execute('education', { ...FIXTURE, education: [school] }));
+  expect(r).toContain('Test School, 2020'); expect(r).not.toContain('–');
+});
 test('projects lists numbered tappable slugs', () => {
   const r = execute('projects', FIXTURE);
   expect(toText(r)).toContain('[1] alpha-bot'); expect(toText(r)).toContain('[2] beta-arm');

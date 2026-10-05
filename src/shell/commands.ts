@@ -13,6 +13,7 @@ const text = (value: string): Line => [{ text: value }];
 const accent = (value: string): Line => [{ text: value, style: 'accent' }];
 const dim = (value: string): Line => [{ text: value, style: 'dim' }];
 const linkLine = (link: Link): Line => [{ text: link.label, href: link.href }];
+const dateRange = (start: string, end: string): string => (start === end ? end : `${start} – ${end}`);
 
 // Blank line between entries, none after the last.
 const joinEntries = (entries: Line[][]): Line[] =>
@@ -63,7 +64,7 @@ export const COMMANDS: Command[] = [
     run: (_args, content) => ({
       lines: joinEntries(content.experience.map(job => [
         accent(`${job.role} @ ${job.company}`),
-        dim(`${job.start} – ${job.end}`),
+        dim(dateRange(job.start, job.end)),
         ...job.highlights.map(highlight => text(`- ${highlight}`)),
       ])),
     }),
@@ -73,7 +74,7 @@ export const COMMANDS: Command[] = [
     run: (_args, content) => ({
       lines: joinEntries(content.education.map(school => [
         accent(school.degree),
-        dim(`${school.institution}, ${school.start} – ${school.end}`),
+        dim(`${school.institution}, ${dateRange(school.start, school.end)}`),
         ...(school.notes ?? []).map(note => text(`- ${note}`)),
       ])),
     }),
