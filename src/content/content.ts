@@ -94,5 +94,6 @@ export const CONTENT: Content = {
   contact: [
     { label: 'pavannanjunda333@gmail.com', href: 'mailto:pavannanjunda333@gmail.com' },
     { label: 'linkedin.com/in/pavan-nanjunda', href: 'https://www.linkedin.com/in/pavan-nanjunda' },
+    { label: 'github.com/pavannanjunda', href: 'https://github.com/pavannanjunda' },
   ],
 };
