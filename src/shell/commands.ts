@@ -13,7 +13,7 @@ const text = (value: string): Line => [{ text: value }];
 const accent = (value: string): Line => [{ text: value, style: 'accent' }];
 const dim = (value: string): Line => [{ text: value, style: 'dim' }];
 const linkLine = (link: Link): Line => [{ text: link.label, href: link.href }];
-const dateRange = (start: string, end: string): string => (start === end ? end : `${start} – ${end}`);
+export const dateRange = (start: string, end: string): string => (start === end ? end : `${start} – ${end}`);
 
 // Blank line between entries, none after the last.
 const joinEntries = (entries: Line[][]): Line[] =>

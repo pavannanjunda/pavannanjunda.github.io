@@ -124,3 +124,10 @@ test('a keydown without a key does not throw', () => {
   window.removeEventListener('error', onError);
   expect(errors).toEqual([]);
 });
+
+test('a bare terminal has no window chrome', () => {
+  const root = document.createElement('div'); mountTerminal(root, FIXTURE, { bare: true });
+  expect(root.querySelector('.titlebar')).toBeNull(); expect(root.querySelector('.identity')).toBeNull();
+  expect(root.classList.contains('window')).toBe(false); expect(root.querySelector('#cmd')).not.toBeNull();
+  expect(root.querySelector('.chips')).not.toBeNull();
+});

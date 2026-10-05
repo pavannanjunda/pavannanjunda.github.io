@@ -1,6 +1,6 @@
 # Portfolio
 
-Pavan N's personal portfolio, presented as an interactive terminal. Visitors type commands such as `help`, `about` and `projects`, or tap the buttons under the prompt. A link like `/#projects` opens straight on that command.
+Pavan N's personal portfolio, styled as a terminal system dashboard: a sidebar of sections, panels of content, and a Terminal section where visitors can type commands such as `help`, `about` and `projects` instead. A link like `/#projects` opens straight on that section.
 
 ## Run it
 

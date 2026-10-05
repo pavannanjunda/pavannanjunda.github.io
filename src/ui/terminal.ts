@@ -6,6 +6,7 @@ import { execute } from '../shell/execute';
 import { History } from '../shell/history';
 import type { Line } from '../shell/output';
 import { asciiBanner } from './ascii';
+import { el, initials } from './dom';
 import { renderLine } from './render';
 
 const MAX_HASH_COMMAND = 100;
@@ -22,16 +23,6 @@ export function readHashCommand(hash: string): string | undefined {
   const command = decoded.replace(/[\s\u0000-\u001f\u007f]+/g, ' ').trim().slice(0, MAX_HASH_COMMAND);
   return command === '' ? undefined : command;
 }
-
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-const initials = (name: string): string =>
-  name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0].toUpperCase()).join('');
 
 function buildTitlebar(title: string): HTMLElement {
   const bar = el('div', 'titlebar');
@@ -67,7 +58,7 @@ function buildIdentity(content: Content, run: (raw: string) => void): HTMLElemen
 export function mountTerminal(
   root: HTMLElement,
   content: Content,
-  options?: { initialCommand?: string },
+  options?: { initialCommand?: string; bare?: boolean },
 ): { run(raw: string): void } {
   const promptText = `${content.handle}@portfolio:~$`;
   const history = new History();
@@ -169,13 +160,19 @@ export function mountTerminal(
     input.focus();
   });
 
-  root.classList.add('window');
-  root.replaceChildren(
-    buildTitlebar(`${content.handle}@portfolio:~`),
-    buildIdentity(content, run),
-    screen,
-    chips,
-  );
+  // Bare: just the screen and chips, for embedding in another layout.
+  if (options?.bare) {
+    root.classList.add('term');
+    root.replaceChildren(screen, chips);
+  } else {
+    root.classList.add('window');
+    root.replaceChildren(
+      buildTitlebar(`${content.handle}@portfolio:~`),
+      buildIdentity(content, run),
+      screen,
+      chips,
+    );
+  }
 
   const art = asciiBanner(content.name);
   if (art.length > 0) {
