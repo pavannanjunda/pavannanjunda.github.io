@@ -10,7 +10,7 @@ export const SECTIONS: Section[] = [
   { id: 'terminal', label: 'TERMINAL', summary: 'Type a command, or pick a section from the menu.' },
   { id: 'dashboard', label: 'OVERVIEW', summary: '' },
   { id: 'about', label: 'ABOUT', summary: 'Who I am.' },
-  { id: 'experience', label: 'EXPERIENCE', summary: 'Roles and training, newest first.' },
+  { id: 'experience', label: 'EXPERIENCE', summary: 'Roles and training, newest first. Select one for details.' },
   { id: 'education', label: 'EDUCATION', summary: 'Where I studied.' },
   { id: 'projects', label: 'PROJECTS', summary: "Things I've built. Select one for details." },
   { id: 'skills', label: 'SKILLS', summary: 'Tools I use.' },
@@ -128,6 +128,27 @@ function entry(title: string, at: string, dates: string, points: string[]): HTML
 
 const DASHBOARD_INDEX = SECTIONS.findIndex(section => section.id === 'dashboard') + 1;
 
+// A dropdown: the heading is always visible, the details open on click.
+// Sharing a `name` makes the browser keep one open at a time.
+function dropdown(group: string, title: string, at: string, dates: string, points: string[]): HTMLElement {
+  const node = el('details', 'entry');
+  node.setAttribute('name', group);
+  const summary = el('summary', '');
+  const head = el('h3', '');
+  head.append(el('span', 'accent', title), el('span', '', ` @ ${at}`));
+  summary.append(head, el('div', 'dim', dates));
+  const body = el('div', 'entry-body');
+  if (points.length > 0) {
+    const list = el('ul', '');
+    list.append(...points.map(point => el('li', '', point)));
+    body.append(list);
+  } else {
+    body.append(el('p', 'dim', 'No details added yet.'));
+  }
+  node.append(summary, body);
+  return node;
+}
+
 const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => HTMLElement[]> = {
   dashboard: (content, nav) => {
     const stats = el('div', 'stats');
@@ -179,7 +200,7 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
 
   experience: content => [
     panel('EXPERIENCE_LOG', content.experience.length > 0
-      ? content.experience.map(job => entry(job.role, job.company, dateRange(job.start, job.end), job.highlights))
+      ? content.experience.map(job => dropdown('experience', job.role, job.company, dateRange(job.start, job.end), job.highlights))
       : [empty()]),
   ],
 

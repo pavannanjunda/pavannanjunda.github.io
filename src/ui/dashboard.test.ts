@@ -162,3 +162,16 @@ test('the theme toggle switches between light and dark and says which', () => {
   expect(toggle.getAttribute('aria-pressed')).toBe(String(html.dataset.theme === 'dark'));
   toggle.click(); expect(html.dataset.theme).toBe(before);
 });
+
+test('each experience is a closed dropdown that holds its details', () => {
+  const extra = { company: 'Beta Labs', role: 'Intern', start: '2025', end: '2025', highlights: [] };
+  const { view } = setup('experience', { ...FIXTURE, experience: [...FIXTURE.experience, extra] });
+  const items = [...view().querySelectorAll<HTMLDetailsElement>('details.entry')];
+  expect(items.length).toBe(2); expect(items.every(d => !d.open)).toBe(true);
+  expect(new Set(items.map(d => d.getAttribute('name')))).toEqual(new Set(['experience']));
+  const summary = items[0].querySelector('summary')!;
+  expect(summary.textContent).toContain('Engineer'); expect(summary.textContent).toContain('Acme Robotics'); expect(summary.textContent).toContain('2026-04 – present');
+  expect(summary.textContent).not.toContain('Built a thing.');
+  expect(items[0].querySelector('.entry-body')!.textContent).toContain('Built a thing.');
+  expect(items[1].querySelector('.entry-body')!.textContent).toBe('No details added yet.');
+});

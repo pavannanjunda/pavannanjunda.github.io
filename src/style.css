@@ -461,6 +461,60 @@ li::marker {
   margin-top: 6px;
 }
 
+/* Dropdown entries */
+
+details.entry summary {
+  position: relative;
+  padding: 4px 36px 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+details.entry summary::-webkit-details-marker {
+  display: none;
+}
+
+details.entry summary::after {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--dim);
+  border-bottom: 2px solid var(--dim);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 0.2s, border-color 0.2s;
+  content: "";
+}
+
+details.entry summary:hover::after,
+details.entry[open] summary::after {
+  border-color: var(--accent);
+}
+
+details.entry[open] summary::after {
+  transform: translateY(-30%) rotate(225deg);
+}
+
+details.entry summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.entry-body {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--raised);
+  animation: rise 0.25s ease both;
+}
+
+.entry-body ul {
+  margin-top: 0;
+}
+
 /* Overview grid */
 
 .grid {
