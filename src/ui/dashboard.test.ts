@@ -36,7 +36,7 @@ test('opens on the terminal, which is first in the sidebar', () => {
 test('the dashboard overview introduces the owner', () => {
   const { root, view, current } = setup('dashboard');
   expect(current()).toBe('dashboard');
-  expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / DASHBOARD');
+  expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / OVERVIEW');
   expect(view().querySelector('.hero h1')!.textContent).toBe('TEST USER');
   expect(view().querySelector('.hero')!.textContent).toContain('Robotics engineer');
   expect(view().querySelector('.hero .index')!.textContent).toBe('02');
@@ -150,4 +150,15 @@ test('a dashboard that has left the page ignores keys', () => {
 });
 test('the top bar shows a clock', () => {
   expect(setup().root.querySelector('.clock')!.textContent).toMatch(/^\d\d:\d\d:\d\d$/);
+});
+
+test('the overview includes the interactive map', () => {
+  const { view } = setup('dashboard'); expect(view().querySelector('.map svg .node[data-id="person"]')).not.toBeNull();
+});
+test('the theme toggle switches between light and dark and says which', () => {
+  const { root } = setup(); const html = document.documentElement; const toggle = root.querySelector<HTMLButtonElement>('.theme-toggle')!;
+  const before = html.dataset.theme!; expect(['light', 'dark']).toContain(before);
+  toggle.click(); expect(html.dataset.theme).toBe(before === 'dark' ? 'light' : 'dark');
+  expect(toggle.getAttribute('aria-pressed')).toBe(String(html.dataset.theme === 'dark'));
+  toggle.click(); expect(html.dataset.theme).toBe(before);
 });

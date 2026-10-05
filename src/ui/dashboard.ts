@@ -1,6 +1,7 @@
 import type { Content, Project } from '../content/types';
 import { dateRange } from '../shell/commands';
 import { el, initials, linkEl } from './dom';
+import { renderMap } from './map';
 import { mountTerminal } from './terminal';
 
 export interface Section { id: string; label: string; summary: string }
@@ -8,7 +9,7 @@ export interface Section { id: string; label: string; summary: string }
 // The first section is the one the site opens on.
 export const SECTIONS: Section[] = [
   { id: 'terminal', label: 'TERMINAL', summary: 'Type a command, or pick a section from the menu.' },
-  { id: 'dashboard', label: 'DASHBOARD', summary: '' },
+  { id: 'dashboard', label: 'OVERVIEW', summary: '' },
   { id: 'about', label: 'ABOUT', summary: 'Who I am.' },
   { id: 'experience', label: 'EXPERIENCE', summary: 'Roles and training, newest first.' },
   { id: 'education', label: 'EDUCATION', summary: 'Where I studied.' },
@@ -18,6 +19,19 @@ export const SECTIONS: Section[] = [
 ];
 
 type Navigate = (id: string, arg?: string) => void;
+
+const THEME_KEY = 'theme';
+
+// The saved choice, else the system preference, else dark.
+function initialTheme(): 'light' | 'dark' {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {
+    // Storage unavailable: fall through to the system preference.
+  }
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 
@@ -156,6 +170,7 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
         button('VIEW PROJECTS', () => nav('projects'), 'btn primary'),
         button('CONTACT', () => nav('contact'), 'btn'),
       ]),
+      renderMap(content, nav),
       grid,
     ];
   },
@@ -204,6 +219,20 @@ export function mountDashboard(
   content: Content,
   options?: { initialRoute?: string; onNavigate?: (route: string) => void },
 ): { show(route: string): void } {
+  const html = root.ownerDocument.documentElement;
+  const applyTheme = (theme: 'light' | 'dark', remember: boolean) => {
+    html.dataset.theme = theme;
+    themeToggle.textContent = theme === 'dark' ? 'DARK' : 'LIGHT';
+    themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
+    themeToggle.setAttribute('aria-label', 'Dark theme');
+    if (!remember) return;
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // Private mode or blocked storage: the choice lasts for this visit only.
+    }
+  };
+
   const sidebar = el('aside', 'sidebar');
   const brandBox = el('div', 'brand-box');
   brandBox.append(
@@ -235,7 +264,8 @@ export function mountDashboard(
   const tick = () => { clock.textContent = new Date().toLocaleTimeString('en-GB'); };
   tick();
   setInterval(tick, 1000);
-  badges.append(el('span', 'badge ok', 'SYS: OK'), el('span', 'badge', `${pad(content.projects.length)} PROJECTS`), clock);
+  const themeToggle = button('', () => applyTheme(html.dataset.theme === 'dark' ? 'light' : 'dark', true), 'badge theme-toggle');
+  badges.append(el('span', 'badge ok', 'SYS: OK'), el('span', 'badge', `${pad(content.projects.length)} PROJECTS`), clock, themeToggle);
   const topbar = el('header', 'topbar');
   topbar.append(crumbs, badges);
   const view = el('main', 'view');
@@ -307,6 +337,7 @@ export function mountDashboard(
     }
   });
 
+  applyTheme(initialTheme(), false);
   root.classList.add('dash');
   root.replaceChildren(sidebar, main);
   render(options?.initialRoute ?? SECTIONS[0].id);
