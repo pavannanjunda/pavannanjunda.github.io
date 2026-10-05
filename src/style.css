@@ -1,8 +1,11 @@
 :root {
-  --bg: #0d1117;
-  --text: #c9d1d9;
-  --accent: #7ee787;
-  --dim: #8b949e;
+  --page: #020402;
+  --bg: #060b07;
+  --bar: #0c140d;
+  --line: #1c3a22;
+  --text: #a9e8b4;
+  --accent: #4dff6a;
+  --dim: #5c9a68;
   --error: #ff7b72;
   --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
 }
@@ -18,20 +21,157 @@ html {
 }
 
 body {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
   margin: 0;
+  padding: 24px;
   overflow-x: hidden;
-  background: var(--bg);
+  background: var(--page);
   color: var(--text);
   font-family: var(--mono);
   font-size: 15px;
   line-height: 1.6;
 }
 
+/* Before the script runs (or without JavaScript) #app is a plain block. */
 #app {
-  max-width: 80ch;
-  min-height: 100dvh;
-  margin: 0 auto;
-  padding: 16px 16px 0;
+  width: 100%;
+  max-width: 900px;
+}
+
+#app:not(.window) {
+  padding: 16px;
+}
+
+/* The terminal window */
+
+.window {
+  display: flex;
+  flex-direction: column;
+  height: min(720px, calc(100dvh - 48px));
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: 0 0 60px rgb(77 255 106 / 8%);
+}
+
+.titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: none;
+  height: 36px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bar);
+}
+
+.dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f57;
+}
+
+.dot:nth-child(2) { background: #febc2e; }
+.dot:nth-child(3) { background: #28c840; }
+
+.title {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--dim);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.who {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tagline {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.header-btn {
+  display: inline-grid;
+  place-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.header-btn:hover {
+  border-color: var(--accent);
+}
+
+/* Output and prompt */
+
+.screen {
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
+  overflow-y: auto;
+  scrollbar-color: var(--line) transparent;
+}
+
+.ascii {
+  margin: 0 0 12px;
+  overflow: hidden;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: min(14px, 3.2vw);
+  line-height: 1;
+  text-shadow: 0 0 12px rgb(77 255 106 / 35%);
 }
 
 .line {
@@ -44,7 +184,7 @@ body {
 .dim { color: var(--dim); }
 .error { color: var(--error); }
 
-a {
+.line a {
   color: var(--accent);
   text-underline-offset: 3px;
 }
@@ -89,21 +229,68 @@ a {
   caret-color: var(--accent);
 }
 
-/* Stuck to the bottom of the viewport so a tap-only visitor never has to
-   scroll past an output to find the commands again. */
+/* Command chips: outside the scrolling screen, so a tap-only visitor never
+   has to scroll to find them. */
+
 .chips {
-  position: sticky;
-  bottom: 0;
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
-  padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
-  background: var(--bg);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--bar);
 }
 
-/* On a phone three wrapped rows would cover a quarter of the screen. */
+.chip {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip::before {
+  content: "/";
+  color: var(--dim);
+}
+
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* On a phone the window is the whole screen. */
 @media (max-width: 600px) {
+  body {
+    padding: 0;
+  }
+
+  .window {
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .identity {
+    flex-wrap: wrap;
+  }
+
+  /* Three wrapped rows would cover a quarter of the screen. */
   .chips {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -113,32 +300,4 @@ a {
   .chip {
     flex: none;
   }
-}
-
-.chip {
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--dim);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.chip:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-a:focus-visible,
-.cmd-link:focus-visible,
-.chip:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-::selection {
-  background: var(--accent);
-  color: var(--bg);
 }

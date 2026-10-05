@@ -1,9 +1,11 @@
 import type { Content } from '../content/types';
+import { isSafeHref } from '../content/validate';
 import { COMMANDS } from '../shell/commands';
 import { complete } from '../shell/complete';
 import { execute } from '../shell/execute';
 import { History } from '../shell/history';
 import type { Line } from '../shell/output';
+import { asciiBanner } from './ascii';
 import { renderLine } from './render';
 
 const MAX_HASH_COMMAND = 100;
@@ -21,6 +23,47 @@ export function readHashCommand(hash: string): string | undefined {
   return command === '' ? undefined : command;
 }
 
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string): HTMLElementTagNameMap[K] {
+  const node = document.createElement(tag);
+  node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+const initials = (name: string): string =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0].toUpperCase()).join('');
+
+function buildTitlebar(title: string): HTMLElement {
+  const bar = el('div', 'titlebar');
+  const dots = el('span', 'dots');
+  dots.setAttribute('aria-hidden', 'true');
+  dots.append(el('i', 'dot'), el('i', 'dot'), el('i', 'dot'));
+  bar.append(dots, el('span', 'title', title));
+  return bar;
+}
+
+function buildIdentity(content: Content, run: (raw: string) => void): HTMLElement {
+  const header = el('header', 'identity');
+  const avatar = el('div', 'avatar', initials(content.name));
+  avatar.setAttribute('aria-hidden', 'true');
+  const who = el('div', 'who');
+  who.append(el('div', 'name', content.name), el('div', 'tagline', content.tagline));
+
+  const actions = el('div', 'actions');
+  const contact = el('button', 'header-btn', 'contact');
+  contact.type = 'button';
+  contact.addEventListener('click', () => run('contact'));
+  actions.append(contact);
+  if (content.resumeHref !== undefined && isSafeHref(content.resumeHref)) {
+    const resume = el('a', 'header-btn resume', 'resume');
+    resume.href = content.resumeHref;
+    actions.append(resume);
+  }
+
+  header.append(avatar, who, actions);
+  return header;
+}
+
 export function mountTerminal(
   root: HTMLElement,
   content: Content,
@@ -29,17 +72,13 @@ export function mountTerminal(
   const promptText = `${content.handle}@portfolio:~$`;
   const history = new History();
 
-  const output = document.createElement('div');
-  output.className = 'output';
+  const output = el('div', 'output');
   output.setAttribute('role', 'log');
   output.setAttribute('aria-live', 'polite');
 
-  const form = document.createElement('form');
-  form.className = 'prompt-line';
-  const label = document.createElement('label');
-  label.className = 'prompt';
+  const form = el('form', 'prompt-line');
+  const label = el('label', 'prompt', promptText);
   label.htmlFor = 'cmd';
-  label.textContent = promptText;
   const input = document.createElement('input');
   input.id = 'cmd';
   input.type = 'text';
@@ -51,8 +90,12 @@ export function mountTerminal(
   input.setAttribute('enterkeyhint', 'go');
   form.append(label, input);
 
-  const chips = document.createElement('nav');
-  chips.className = 'chips';
+  // The output and prompt scroll together inside the window; the chips stay
+  // put beneath them.
+  const screen = el('div', 'screen');
+  screen.append(output, form);
+
+  const chips = el('nav', 'chips');
   chips.setAttribute('aria-label', 'Commands');
 
   const print = (lines: Line[]) => output.append(...lines.map(line => renderLine(line, run)));
@@ -64,13 +107,10 @@ export function mountTerminal(
     return line;
   };
 
-  // Scroll to the prompt at the bottom, but if the output is taller than the
-  // viewport, show its start instead of its end. The command a deep link runs
-  // at load is not scrolled to, so the banner stays on screen.
-  let mounted = false;
+  // Scroll to the prompt, but if the output is taller than the screen, show
+  // its start instead of its end.
   const reveal = (start: HTMLElement) => {
-    if (!mounted) return;
-    root.scrollIntoView?.({ block: 'end' });
+    form.scrollIntoView?.({ block: 'nearest' });
     if (start.isConnected) start.scrollIntoView?.({ block: 'nearest' });
   };
 
@@ -86,10 +126,8 @@ export function mountTerminal(
 
   for (const command of COMMANDS) {
     if (command.name === 'clear') continue;
-    const chip = document.createElement('button');
+    const chip = el('button', 'chip', command.name);
     chip.type = 'button';
-    chip.className = 'chip';
-    chip.textContent = command.name;
     chip.addEventListener('click', () => run(command.name));
     chips.append(chip);
   }
@@ -131,15 +169,29 @@ export function mountTerminal(
     input.focus();
   });
 
-  root.replaceChildren(output, form, chips);
+  root.classList.add('window');
+  root.replaceChildren(
+    buildTitlebar(`${content.handle}@portfolio:~`),
+    buildIdentity(content, run),
+    screen,
+    chips,
+  );
+
+  const art = asciiBanner(content.name);
+  if (art.length > 0) {
+    const pre = el('pre', 'ascii', art.join('\n'));
+    pre.setAttribute('aria-hidden', 'true');
+    output.append(pre);
+  }
   print([
-    [{ text: content.name, style: 'accent' }],
-    [{ text: content.tagline }],
+    [{ text: 'Welcome to my interactive portfolio.' }],
+    [{ text: 'Here are the available commands to explore:', style: 'dim' }],
+    [],
+    ...execute('help', content).lines,
     [],
     [{ text: "Type 'help' or tap a command below.", style: 'dim' }],
   ]);
   if (options?.initialCommand !== undefined) run(options.initialCommand);
-  mounted = true;
 
   return { run };
 }

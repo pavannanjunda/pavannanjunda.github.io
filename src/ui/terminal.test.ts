@@ -13,9 +13,32 @@ const setup = (options?: { initialCommand?: string }) => {
   return { root, term, input, out, submit, key };
 };
 
-test('shows the banner, prompt and chips', () => {
+test('frames the terminal as a window with an identity header', () => {
+  const { root } = setup();
+  expect(root.classList.contains('window')).toBe(true);
+  expect(root.querySelector('.titlebar .title')!.textContent).toBe('test@portfolio:~');
+  expect(root.querySelector('.identity .avatar')!.textContent).toBe('TU');
+  expect(root.querySelector('.identity .name')!.textContent).toBe('Test User');
+  expect(root.querySelector('.identity .tagline')!.textContent).toBe('Robotics engineer');
+  expect(root.querySelector<HTMLAnchorElement>('.identity a.resume')!.getAttribute('href')).toBe('resume.pdf');
+});
+test('the header has no resume link when no resume is published', () => {
+  const root = document.createElement('div'); mountTerminal(root, { ...FIXTURE, resumeHref: undefined });
+  expect(root.querySelector('.identity a.resume')).toBeNull();
+});
+test('the header contact button runs the contact command', () => {
+  const { root, out } = setup(); root.querySelector<HTMLButtonElement>('.identity button')!.click();
+  expect(out()).toContain('test@portfolio:~$ contact'); expect(root.querySelector('.output a[href="mailto:test@example.com"]')).not.toBeNull();
+});
+test('opens with an ASCII name, a welcome and the command list', () => {
   const { root, out } = setup();
-  expect(out()).toContain('Test User'); expect(out()).toContain('Robotics engineer'); expect(out()).toContain("Type 'help' or tap a command below.");
+  const art = root.querySelector('.output pre.ascii')!;
+  expect(art.getAttribute('aria-hidden')).toBe('true'); expect(art.textContent).toContain('█');
+  expect(out()).toContain('Welcome to my interactive portfolio.'); expect(out()).toContain("things I've built");
+});
+test('shows the hint, prompt and chips', () => {
+  const { root, out } = setup();
+  expect(out()).toContain("Type 'help' or tap a command below.");
   expect(root.querySelector('.prompt')!.textContent).toBe('test@portfolio:~$');
   expect([...root.querySelectorAll('.chip')].map(b => b.textContent)).toEqual(['help', 'about', 'experience', 'education', 'projects', 'skills', 'contact', 'resume']);
   expect(root.querySelector('.output')!.getAttribute('role')).toBe('log');
@@ -39,7 +62,12 @@ test('a chip runs its command', () => {
 });
 test('a tappable name in the output runs its command', () => {
   const { root, out, submit } = setup(); submit('projects');
-  root.querySelector<HTMLButtonElement>('.output button')!.click(); expect(out()).toContain('Alpha Bot');
+  [...root.querySelectorAll<HTMLButtonElement>('.output button')].find(b => b.textContent === 'alpha-bot')!.click(); expect(out()).toContain('Alpha Bot');
+});
+test('the output and prompt share one scrolling screen, with chips outside it', () => {
+  const { root } = setup(); const screen = root.querySelector('.screen')!;
+  expect(screen.querySelector('.output')).not.toBeNull(); expect(screen.querySelector('form.prompt-line')).not.toBeNull();
+  expect(screen.querySelector('.chips')).toBeNull(); expect(root.querySelector('.chips')).not.toBeNull();
 });
 test('clear and Ctrl+L empty the output', () => {
   const { root, submit, key } = setup(); submit('about'); submit('clear'); expect(root.querySelector('.output')!.children.length).toBe(0);
@@ -61,14 +89,14 @@ test('readHashCommand decodes a hash', () => {
 });
 test('survives a malformed hash', () => {
   expect(readHashCommand('#%E0%A4%A')).toBeUndefined();
-  const { out } = setup({ initialCommand: 'nonsense' }); expect(out()).toContain('Test User'); expect(out()).toContain('command not found: nonsense');
+  const { root, out } = setup({ initialCommand: 'nonsense' }); expect(root.textContent).toContain('Test User'); expect(out()).toContain('command not found: nonsense');
 });
 
-test('an initial command leaves the banner on screen, later commands scroll', () => {
+test('every command scrolls to its output, including a deep link', () => {
   const scroll = vi.fn(); HTMLElement.prototype.scrollIntoView = scroll;
   try {
-    const { submit } = setup({ initialCommand: 'experience' }); expect(scroll).not.toHaveBeenCalled();
-    submit('about'); expect(scroll).toHaveBeenCalled();
+    const { submit } = setup({ initialCommand: 'experience' }); expect(scroll).toHaveBeenCalled();
+    scroll.mockClear(); submit('about'); expect(scroll).toHaveBeenCalled();
   } finally { delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView; }
 });
 test('readHashCommand flattens whitespace and caps the length', () => {
