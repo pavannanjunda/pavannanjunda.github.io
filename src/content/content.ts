@@ -14,26 +14,26 @@ export const CONTENT: Content = {
   ],
 
   experience: [
-    { role: 'AI & ML Trainee', company: 'XP Robotics', start: 'Feb 2026', end: 'present', highlights: [] },
-    { role: 'Data Science (AI) Trainee', company: 'Nasscom Foundation & Capgemini', start: 'Jan 2026', end: 'Mar 2026', highlights: [] },
+    { role: 'AI & ML Trainee', kind: 'work', company: 'XP Robotics', start: 'Feb 2026', end: 'present', highlights: [] },
+    { role: 'Data Science (AI) Trainee', kind: 'training', company: 'Nasscom Foundation & Capgemini', start: 'Jan 2026', end: 'Mar 2026', highlights: [] },
     {
-      role: 'Engineering Trainee', company: 'Board Infinity', start: 'Mar 2025', end: 'Sep 2025',
+      role: 'Engineering Trainee', kind: 'training', company: 'Board Infinity', start: 'Mar 2025', end: 'Sep 2025',
       highlights: ['Trained in data structures (arrays, linked lists, trees) and algorithmic analysis.'],
     },
     {
-      role: 'Secretary', company: 'Cambridge IEEE Student Chapter', start: 'Dec 2024', end: 'Dec 2025',
+      role: 'Secretary', kind: 'leadership', company: 'Cambridge IEEE Student Chapter', start: 'Dec 2024', end: 'Dec 2025',
       highlights: ['Organised 12 technical events and workshops across the Secretary and Webmaster roles.'],
     },
     {
-      role: 'IoT Trainee', company: 'Samsung Innovation Campus', start: 'Oct 2024', end: 'Mar 2025',
+      role: 'IoT Trainee', kind: 'training', company: 'Samsung Innovation Campus', start: 'Oct 2024', end: 'Mar 2025',
       highlights: [
         'Trained on Raspberry Pi and Arduino hardware and IoT applications.',
         'Designed and built the Automated Water Irrigation System capstone.',
       ],
     },
-    { role: 'Webmaster', company: 'Cambridge IEEE RAS Student Chapter', start: 'Jun 2024', end: 'Dec 2024', highlights: [] },
+    { role: 'Webmaster', kind: 'leadership', company: 'Cambridge IEEE RAS Student Chapter', start: 'Jun 2024', end: 'Dec 2024', highlights: [] },
     {
-      role: 'Operations Team Lead', company: 'AdAstra CIT', start: 'Oct 2023', end: 'Oct 2024',
+      role: 'Operations Team Lead', kind: 'leadership', company: 'AdAstra CIT', start: 'Oct 2023', end: 'Oct 2024',
       highlights: ['Coordinated team activities and operations for the college drone club.'],
     },
   ],

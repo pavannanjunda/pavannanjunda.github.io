@@ -675,6 +675,172 @@ details.entry summary:focus-visible {
   transform: translateY(-1px);
 }
 
+/* Experience: a filterable timeline */
+
+.tl-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tl-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tl-work { --hue: #22d3ee; }
+.tl-training { --hue: #fbbf24; }
+.tl-leadership { --hue: #a78bfa; }
+
+.tl-filter {
+  --hue: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.tl-filter:hover {
+  border-color: var(--hue);
+  color: var(--bright);
+}
+
+.tl-filter[aria-pressed="true"] {
+  border-color: var(--hue);
+  background: color-mix(in srgb, var(--hue) 20%, var(--surface));
+  color: var(--bright);
+}
+
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0 0 0 34px;
+  list-style: none;
+}
+
+/* The line the entries hang from. */
+.timeline::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(var(--accent), var(--line));
+  content: "";
+}
+
+.tl-item {
+  position: relative;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--hue);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  animation: rise 0.4s both;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.15s;
+}
+
+.tl-item:nth-child(2) { animation-delay: 0.05s; }
+.tl-item:nth-child(3) { animation-delay: 0.1s; }
+.tl-item:nth-child(4) { animation-delay: 0.15s; }
+.tl-item:nth-child(n + 5) { animation-delay: 0.2s; }
+
+.tl-item:hover {
+  border-color: var(--hue);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--hue) 20%, transparent);
+  transform: translateX(4px);
+}
+
+/* The dot on the line. */
+.tl-item::before {
+  position: absolute;
+  top: 22px;
+  left: -31px;
+  width: 12px;
+  height: 12px;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: var(--hue);
+  box-shadow: 0 0 0 2px var(--hue);
+  content: "";
+}
+
+.tl-item h3 {
+  color: var(--bright);
+  font-size: 16px;
+}
+
+.tl-role {
+  color: var(--hue);
+}
+
+.tl-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.tl-dates {
+  color: var(--dim);
+}
+
+.tl-duration,
+.tl-kind,
+.tl-current {
+  padding: 1px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.tl-kind {
+  border-color: color-mix(in srgb, var(--hue) 55%, var(--line));
+  color: var(--hue);
+}
+
+.tl-current {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.tl-current::before {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  vertical-align: middle;
+  animation: pulse 2s ease-in-out infinite;
+  content: "";
+}
+
+.tl-item .entry-body {
+  border-left-color: var(--hue);
+}
+
 /* Skills: a filter bar, colour-coded group cards, and a usage matrix */
 
 .skill-toolbar {

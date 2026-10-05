@@ -1,5 +1,9 @@
 export interface Link { label: string; href: string }
-export interface Job { company: string; role: string; start: string; end: string; highlights: string[] }
+// `kind` colours and filters the experience timeline; a job without one counts as work.
+export interface Job {
+  company: string; role: string; start: string; end: string; highlights: string[];
+  kind?: 'work' | 'training' | 'leadership';
+}
 export interface School { institution: string; degree: string; start: string; end: string; notes?: string[] }
 export interface Media { src: string; alt: string }
 // `problem`, `result` and `media` turn a project into a case study; all optional.

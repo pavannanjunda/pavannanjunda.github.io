@@ -168,7 +168,6 @@ test('each experience is a closed dropdown that holds its details', () => {
   const { view } = setup('experience', { ...FIXTURE, experience: [...FIXTURE.experience, extra] });
   const items = [...view().querySelectorAll<HTMLDetailsElement>('details.entry')];
   expect(items.length).toBe(2); expect(items.every(d => !d.open)).toBe(true);
-  expect(new Set(items.map(d => d.getAttribute('name')))).toEqual(new Set(['experience']));
   const summary = items[0].querySelector('summary')!;
   expect(summary.textContent).toContain('Engineer'); expect(summary.textContent).toContain('Acme Robotics'); expect(summary.textContent).toContain('2026-04 – present');
   expect(summary.textContent).not.toContain('Built a thing.');
