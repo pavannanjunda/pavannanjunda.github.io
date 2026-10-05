@@ -15,7 +15,7 @@ const setup = (route?: string, content: Content = FIXTURE) => {
 };
 
 test('sections are in a fixed order', () => expect(SECTIONS.map(s => s.id)).toEqual(
-  ['dashboard', 'about', 'experience', 'education', 'projects', 'skills', 'contact', 'terminal']));
+  ['terminal', 'dashboard', 'about', 'experience', 'education', 'projects', 'skills', 'contact']));
 test('the sidebar shows the brand, every section and who is online', () => {
   const { root } = setup();
   expect(root.classList.contains('dash')).toBe(true);
@@ -24,16 +24,25 @@ test('the sidebar shows the brand, every section and who is online', () => {
   expect(root.querySelector('.operator .avatar')!.textContent).toBe('TU');
   expect(root.querySelector('.operator')!.textContent).toContain('TEST');
 });
-test('opens on the dashboard overview', () => {
+test('opens on the terminal, which is first in the sidebar', () => {
   const { root, view, current, routes } = setup();
-  expect(current()).toBe('dashboard'); expect(routes).toEqual([]);
+  expect(current()).toBe('terminal'); expect(routes).toEqual([]);
+  expect(root.querySelector('.sidebar [data-section]')!.getAttribute('data-section')).toBe('terminal');
+  expect(root.querySelector('.nav-group')).toBeNull();
+  expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / TERMINAL');
+  expect(view().querySelector('.hero .index')!.textContent).toBe('01');
+  expect(view().querySelector('#cmd')).not.toBeNull();
+});
+test('the dashboard overview introduces the owner', () => {
+  const { root, view, current } = setup('dashboard');
+  expect(current()).toBe('dashboard');
   expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / DASHBOARD');
   expect(view().querySelector('.hero h1')!.textContent).toBe('TEST USER');
   expect(view().querySelector('.hero')!.textContent).toContain('Robotics engineer');
-  expect(view().querySelector('.hero .index')!.textContent).toBe('01');
+  expect(view().querySelector('.hero .index')!.textContent).toBe('02');
 });
 test('the overview summarises the content without inventing numbers', () => {
-  const { view } = setup(); const text = view().textContent!;
+  const { view } = setup('dashboard'); const text = view().textContent!;
   const stat = (label: string) => [...view().querySelectorAll('.stat')].find(s => s.querySelector('.stat-label')!.textContent === label)!.querySelector('.stat-value')!.textContent;
   expect(stat('PROJECTS')).toBe('02'); expect(stat('ROLES')).toBe('01'); expect(stat('SKILLS')).toBe('02');
   expect(text).toContain('Engineer'); expect(text).toContain('Acme Robotics');
@@ -44,7 +53,7 @@ test('a sidebar button switches section and reports the route', () => {
   const { root, view, navButton, current, routes } = setup(); navButton('skills').click();
   expect(current()).toBe('skills'); expect(routes).toEqual(['skills']);
   expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / SKILLS');
-  expect(view().querySelector('.hero .index')!.textContent).toBe('06');
+  expect(view().querySelector('.hero .index')!.textContent).toBe('07');
   expect(view().textContent).toContain('Languages'); expect([...view().querySelectorAll('.tag')].map(t => t.textContent)).toEqual(['C++', 'Python']);
 });
 test('showing the current route again does nothing', () => {
@@ -80,7 +89,7 @@ test('a route can name a project, and an unknown one falls back to the first', (
   expect(setup('projects/nope').view().querySelector('.project-detail')!.textContent).toContain('Alpha Bot');
 });
 test('a project on the overview opens that project', () => {
-  const { view, current } = setup();
+  const { view, current } = setup('dashboard');
   view().querySelector<HTMLButtonElement>('.project-row[data-slug="beta-arm"] button')!.click();
   expect(current()).toBe('projects'); expect(view().querySelector('.project-detail')!.textContent).toContain('Beta Arm');
 });
@@ -91,9 +100,9 @@ test('contact lists safe links and a resume only when one is published', () => {
   const bad = setup('contact', { ...FIXTURE, resumeHref: undefined, contact: [{ label: 'x', href: 'javascript:alert(1)' }] });
   expect(bad.view().querySelector('a')).toBeNull(); expect(bad.view().textContent).toContain('x');
 });
-test('an unknown or malformed route opens the dashboard', () => {
+test('an unknown or malformed route opens the terminal', () => {
   for (const route of ['nonsense', '<img src=x onerror=alert(1)>', '']) {
-    const { root, current } = setup(route); expect(current()).toBe('dashboard'); expect(root.querySelector('img')).toBeNull();
+    const { root, current } = setup(route); expect(current()).toBe('terminal'); expect(root.querySelector('img')).toBeNull();
   }
 });
 test('the terminal section runs commands and keeps its history between visits', () => {

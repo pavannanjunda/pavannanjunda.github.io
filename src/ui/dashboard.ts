@@ -3,9 +3,11 @@ import { dateRange } from '../shell/commands';
 import { el, initials, linkEl } from './dom';
 import { mountTerminal } from './terminal';
 
-export interface Section { id: string; label: string; summary: string; group?: 'system' }
+export interface Section { id: string; label: string; summary: string }
 
+// The first section is the one the site opens on.
 export const SECTIONS: Section[] = [
+  { id: 'terminal', label: 'TERMINAL', summary: 'Type a command, or pick a section from the menu.' },
   { id: 'dashboard', label: 'DASHBOARD', summary: '' },
   { id: 'about', label: 'ABOUT', summary: 'Who I am.' },
   { id: 'experience', label: 'EXPERIENCE', summary: 'Roles and training, newest first.' },
@@ -13,7 +15,6 @@ export const SECTIONS: Section[] = [
   { id: 'projects', label: 'PROJECTS', summary: "Things I've built. Select one for details." },
   { id: 'skills', label: 'SKILLS', summary: 'Tools I use.' },
   { id: 'contact', label: 'CONTACT', summary: 'How to reach me.' },
-  { id: 'terminal', label: 'TERMINAL', summary: 'The same portfolio as a command line.', group: 'system' },
 ];
 
 type Navigate = (id: string, arg?: string) => void;
@@ -112,6 +113,8 @@ function entry(title: string, at: string, dates: string, points: string[]): HTML
   return node;
 }
 
+const DASHBOARD_INDEX = SECTIONS.findIndex(section => section.id === 'dashboard') + 1;
+
 const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => HTMLElement[]> = {
   dashboard: (content, nav) => {
     const stats = el('div', 'stats');
@@ -149,7 +152,7 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
       panel('CONTACT', contactRows(content), 'area-contact'),
     );
     return [
-      hero(content.name.toUpperCase(), [content.tagline, ...content.about.slice(0, 1)], 1, [
+      hero(content.name.toUpperCase(), [content.tagline, ...content.about.slice(0, 1)], DASHBOARD_INDEX, [
         button('VIEW PROJECTS', () => nav('projects'), 'btn primary'),
         button('CONTACT', () => nav('contact'), 'btn'),
       ]),
@@ -211,7 +214,6 @@ export function mountDashboard(
   nav.setAttribute('aria-label', 'Sections');
   const buttons = new Map<string, HTMLButtonElement>();
   for (const section of SECTIONS) {
-    if (section.group === 'system' && !nav.querySelector('.nav-group')) nav.append(el('div', 'nav-group dim small', 'SYSTEM'));
     const item = button(section.label, () => navigate(section.id), 'nav-item');
     item.dataset.section = section.id;
     buttons.set(section.id, item);
@@ -287,7 +289,7 @@ export function mountDashboard(
 
   root.classList.add('dash');
   root.replaceChildren(sidebar, main);
-  render(options?.initialRoute ?? 'dashboard');
+  render(options?.initialRoute ?? SECTIONS[0].id);
 
   return { show };
 }
