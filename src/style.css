@@ -12,9 +12,6 @@
   --ok: #059669;
   --warn: #b45309;
   --error: #dc2626;
-  --dot: #d9dee5;
-  --arrow: #94a3b8;
-  --arrow-on: #059669;
   --ghost: #eef2f6;
   --shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 10px 30px rgb(15 23 42 / 6%);
   --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -35,26 +32,10 @@
   --ok: #34d399;
   --warn: #fbbf24;
   --error: #f87171;
-  --dot: #1b2536;
-  --arrow: #64748b;
-  --arrow-on: #34d399;
   --ghost: #111c2e;
   --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 30%);
   color-scheme: dark;
 }
-
-/* One colour pair per kind of thing on the map. */
-.kind-person { --k-fill: #dff5f9; --k-stroke: #0891b2; }
-.kind-education { --k-fill: #eef2f6; --k-stroke: #64748b; }
-.kind-role { --k-fill: #fdf1d7; --k-stroke: #d97706; }
-.kind-project { --k-fill: #d9f5e9; --k-stroke: #059669; }
-.kind-tech { --k-fill: #ece6fb; --k-stroke: #7c3aed; }
-
-:root[data-theme="dark"] .kind-person { --k-fill: #083344; --k-stroke: #22d3ee; }
-:root[data-theme="dark"] .kind-education { --k-fill: #1e293b; --k-stroke: #94a3b8; }
-:root[data-theme="dark"] .kind-role { --k-fill: #3a2a0b; --k-stroke: #fbbf24; }
-:root[data-theme="dark"] .kind-project { --k-fill: #06392c; --k-stroke: #34d399; }
-:root[data-theme="dark"] .kind-tech { --k-fill: #2a1f52; --k-stroke: #a78bfa; }
 
 *,
 *::before,
@@ -315,16 +296,10 @@ a {
   50% { opacity: 0.35; }
 }
 
-@keyframes flow {
-  to { stroke-dashoffset: -22; }
-}
-
 /* Cards */
 
 .hero,
-.panel,
-.map-stage,
-.map-detail {
+.panel {
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface);
@@ -464,14 +439,12 @@ a {
   padding: 16px;
 }
 
-.panel h3,
-.map-detail h3 {
+.panel h3 {
   color: var(--bright);
   font-size: 15px;
 }
 
-.panel ul,
-.map-detail ul {
+.panel ul {
   padding-left: 18px;
 }
 
@@ -486,160 +459,6 @@ li::marker {
 
 .entry ul {
   margin-top: 6px;
-}
-
-/* Interactive map */
-
-.map {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 16px;
-}
-
-.map-stage {
-  min-width: 0;
-  background-color: var(--surface);
-  background-image: radial-gradient(var(--dot) 1px, transparent 1px);
-  background-size: 18px 18px;
-}
-
-.canvas {
-  padding: 8px;
-  overflow-x: auto;
-}
-
-.canvas svg {
-  display: block;
-  width: 100%;
-  min-width: 720px;
-  height: auto;
-  margin: 0 auto;
-}
-
-.edge {
-  fill: none;
-  stroke: var(--arrow);
-  stroke-width: 1.5;
-  marker-end: url("#map-arrow");
-  transition: opacity 0.15s;
-}
-
-.edge.trace {
-  stroke: var(--arrow-on);
-  stroke-width: 2;
-  stroke-dasharray: 6 5;
-  marker-end: url("#map-arrow-on");
-  animation: flow 1s linear infinite;
-}
-
-#map-arrow path { fill: var(--arrow); }
-#map-arrow-on path { fill: var(--arrow-on); }
-
-.node {
-  cursor: pointer;
-  outline: none;
-  transition: opacity 0.15s;
-}
-
-.node rect {
-  fill: var(--k-fill);
-  stroke: var(--k-stroke);
-  stroke-width: 1.5;
-  transition: stroke-width 0.15s;
-}
-
-.node:hover rect,
-.node:focus-visible rect {
-  stroke-width: 3;
-}
-
-.node.selected rect {
-  stroke-width: 3;
-  filter: drop-shadow(0 0 6px var(--k-stroke));
-}
-
-.node-title {
-  fill: var(--bright);
-  font: 600 13px var(--mono);
-}
-
-.node-subtitle {
-  fill: var(--dim);
-  font: 11px var(--mono);
-}
-
-/* The lens: everything not lit fades back. */
-.lens .node:not(.lit),
-.lens .edge:not(.lit) {
-  opacity: 0.18;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 16px 14px;
-}
-
-.legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: none;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.legend-item:hover,
-.legend-item:focus-visible {
-  border-color: var(--line);
-  background: var(--surface);
-}
-
-.swatch {
-  width: 18px;
-  height: 11px;
-  border: 1.5px solid var(--k-stroke);
-  border-radius: 3px;
-  background: var(--k-fill);
-}
-
-.count {
-  min-width: 18px;
-  padding: 0 5px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--dim);
-  font-size: 10px;
-  text-align: center;
-}
-
-.map-detail {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 18px;
-}
-
-.kind-label {
-  padding: 2px 10px;
-  border: 1.5px solid var(--k-stroke);
-  border-radius: 999px;
-  background: var(--k-fill);
-  color: var(--bright);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-}
-
-.map-detail .btn {
-  margin-top: auto;
 }
 
 /* Overview grid */
@@ -954,7 +773,7 @@ button:focus-visible {
   }
 }
 
-/* Tablet: the overview drops to two columns and the map detail moves below. */
+/* Tablet: the overview drops to two columns. */
 @media (max-width: 1100px) {
   .grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -963,10 +782,6 @@ button:focus-visible {
       "stats role"
       "log log"
       "actions contact";
-  }
-
-  .map {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 

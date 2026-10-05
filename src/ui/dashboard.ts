@@ -1,7 +1,6 @@
 import type { Content, Project } from '../content/types';
 import { dateRange } from '../shell/commands';
 import { el, initials, linkEl } from './dom';
-import { renderMap } from './map';
 import { mountTerminal } from './terminal';
 
 export interface Section { id: string; label: string; summary: string }
@@ -170,7 +169,6 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
         button('VIEW PROJECTS', () => nav('projects'), 'btn primary'),
         button('CONTACT', () => nav('contact'), 'btn'),
       ]),
-      renderMap(content, nav),
       grid,
     ];
   },

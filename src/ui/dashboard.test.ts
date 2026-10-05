@@ -152,8 +152,8 @@ test('the top bar shows a clock', () => {
   expect(setup().root.querySelector('.clock')!.textContent).toMatch(/^\d\d:\d\d:\d\d$/);
 });
 
-test('the overview includes the interactive map', () => {
-  const { view } = setup('dashboard'); expect(view().querySelector('.map svg .node[data-id="person"]')).not.toBeNull();
+test('the overview has no map', () => {
+  const { view } = setup('dashboard'); expect(view().querySelector('.map, svg')).toBeNull();
 });
 test('the theme toggle switches between light and dark and says which', () => {
   const { root } = setup(); const html = document.documentElement; const toggle = root.querySelector<HTMLButtonElement>('.theme-toggle')!;
