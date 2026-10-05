@@ -149,3 +149,8 @@ test('boots with a staggered intro that later output does not join', () => {
   expect(lines[0].style.getPropertyValue('--i')).toBe('0'); expect(lines[3].style.getPropertyValue('--i')).toBe('3');
   submit('about'); expect(root.querySelector('.output')!.lastElementChild!.classList.contains('boot-line')).toBe(false);
 });
+
+test('there is no resume chip when no resume is published', () => {
+  const root = document.createElement('div'); mountTerminal(root, { ...FIXTURE, resumeHref: undefined });
+  expect([...root.querySelectorAll('.chip')].map(b => b.textContent)).not.toContain('resume');
+});

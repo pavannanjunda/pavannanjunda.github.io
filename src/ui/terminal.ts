@@ -121,6 +121,8 @@ export function mountTerminal(
 
   for (const command of COMMANDS) {
     if (NO_CHIP.has(command.name)) continue;
+    // A chip that can only answer "nothing published" is a dead end.
+    if (command.name === 'resume' && content.resumeHref === undefined) continue;
     const chip = el('button', 'chip', command.name);
     chip.type = 'button';
     chip.addEventListener('click', () => run(command.name));

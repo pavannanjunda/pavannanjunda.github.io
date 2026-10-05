@@ -41,3 +41,6 @@ test('reports an unsafe certificate link and a bad GitHub user', () => {
   expect(has(validateContent({ ...FIXTURE, certifications: [{ ...cert, href: 'http://a.dev' }] }), 'certifications[0].href')).toBe(true);
   expect(has(validateContent({ ...FIXTURE, githubUser: 'a/b?x' }), 'githubUser')).toBe(true);
 });
+test('reports an unsafe site repository link', () => {
+  expect(has(validateContent({ ...FIXTURE, site: { repo: 'http://a.dev', points: [] } }), 'site.repo')).toBe(true);
+});

@@ -239,3 +239,20 @@ test('the overview lists GitHub repositories once, when a user is set', async ()
   expect(loadRepos).toHaveBeenCalledTimes(1); expect(loadRepos).toHaveBeenCalledWith('test-user'); expect(root.querySelector('.repos a')).not.toBeNull();
   expect(setup('dashboard').view().querySelector('.repos')).toBeNull();
 });
+
+test('the top bar links to GitHub and the resume instead of decorative status', () => {
+  const { root } = setup(); const bar = root.querySelector('.badges')!;
+  expect(bar.querySelector<HTMLAnchorElement>('a.badge[href="https://github.com/test"]')!.textContent).toBe('GITHUB');
+  expect(bar.querySelector<HTMLAnchorElement>('a.badge[href="resume.pdf"]')!.textContent).toBe('RESUME');
+  expect(bar.textContent).not.toContain('SYS: OK');
+  const bare = setup(undefined, { ...FIXTURE, contact: [FIXTURE.contact[0]], resumeHref: undefined });
+  expect(bare.root.querySelector('.badges a')).toBeNull();
+});
+test('about describes how the site is built when the content says so', () => {
+  const site = { repo: 'https://github.com/test/site', points: ['No framework.', 'Tests gate every deploy.'] };
+  const { view } = setup('about', { ...FIXTURE, site });
+  const panel = [...view().querySelectorAll('.panel')].find(p => p.querySelector('.panel-title')!.textContent === 'ABOUT_THIS_SITE')!;
+  expect([...panel.querySelectorAll('li')].map(l => l.textContent)).toEqual(site.points);
+  expect(panel.querySelector('a[href="https://github.com/test/site"]')).not.toBeNull();
+  expect(setup('about').view().textContent).not.toContain('ABOUT_THIS_SITE');
+});

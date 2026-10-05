@@ -16,4 +16,5 @@ export interface Content {
   resumeHref?: string;
   certifications?: Certification[];
   githubUser?: string;   // public repositories are listed on the overview
+  site?: { repo?: string; points: string[] };   // how this site is built, shown under About
 }

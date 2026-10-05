@@ -43,6 +43,9 @@ export function validateContent(content: Content): string[] {
   if (content.githubUser !== undefined && !/^[a-zA-Z0-9-]+$/.test(content.githubUser)) {
     problems.push(`githubUser: must be a GitHub username, got "${content.githubUser}"`);
   }
+  if (content.site?.repo !== undefined && !isSafeHref(content.site.repo)) {
+    problems.push(`site.repo: unsafe link "${content.site.repo}"`);
+  }
   if (content.resumeHref !== undefined && !isSafeHref(content.resumeHref)) {
     problems.push(`resumeHref: unsafe link "${content.resumeHref}"`);
   }

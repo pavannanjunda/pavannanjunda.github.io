@@ -55,7 +55,7 @@ export const CONTENT: Content = {
         'Raises alerts through a monitoring dashboard.',
       ],
       tech: ['Faster R-CNN', 'OpenCV', 'Raspberry Pi 5'],
-      links: [],
+      links: [{ label: 'Source code on GitHub', href: 'https://github.com/pavannanjunda/Metal-Defect-Detection-System' }],
     },
     {
       slug: 'irrigation',
@@ -75,7 +75,7 @@ export const CONTENT: Content = {
       summary: 'Detects and recognises predefined hand gestures',
       details: ['A mini project that detects predefined hand gestures and recognises them.'],
       tech: ['TensorFlow', 'OpenCV'],
-      links: [],
+      links: [{ label: 'Source code on GitHub', href: 'https://github.com/pavannanjunda/Hand-Guesture-Detection' }],
     },
     // The resume gives only the titles of the next three. Add `details`,
     // `problem`, `result` and `media` here when there is more to say.
@@ -85,7 +85,7 @@ export const CONTENT: Content = {
       summary: 'An interface for exploring words with WordNet',
       details: [],
       tech: ['WordNet', 'NLP'],
-      links: [],
+      links: [{ label: 'Source code on GitHub', href: 'https://github.com/pavannanjunda/Natural-Language-Processing' }],
     },
     {
       slug: 'jargon-simplifier',
@@ -126,4 +126,15 @@ export const CONTENT: Content = {
   ],
 
   githubUser: 'pavannanjunda',
+
+  site: {
+    repo: 'https://github.com/pavannanjunda/pavannanjunda.github.io',
+    points: [
+      'Written in TypeScript with no framework and no runtime dependencies; about 12 KB of JavaScript after compression.',
+      'Three layers: one typed content file, a command shell that never touches the page, and the UI. The terminal and the panels render from the same content.',
+      'Unit and UI tests run on every push, and a failing test blocks the deploy.',
+      'Content is checked before it ships: an unsafe link or a duplicate project name fails the build.',
+      'Usable by keyboard, follows the system light or dark theme, and turns motion off for visitors who ask for that.',
+    ],
+  },
 };

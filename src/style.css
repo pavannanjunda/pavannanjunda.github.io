@@ -238,6 +238,16 @@ a {
 }
 
 .badge.ok { color: var(--ok); }
+
+.badge-link {
+  color: var(--bright);
+  text-decoration: none;
+}
+
+.badge-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 .badge.clock { color: var(--dim); }
 
 .theme-toggle {

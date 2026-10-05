@@ -202,9 +202,17 @@ const VIEWS: Record<string, (content: Content, nav: Navigate, arg?: string) => H
     ];
   },
 
-  about: content => [
-    panel('ABOUT.TXT', content.about.length > 0 ? content.about.map(paragraph => el('p', '', paragraph)) : [empty()]),
-  ],
+  about: content => {
+    const panels = [panel('ABOUT.TXT', content.about.length > 0 ? content.about.map(paragraph => el('p', '', paragraph)) : [empty()])];
+    if (content.site) {
+      const list = el('ul', '');
+      list.append(...content.site.points.map(point => el('li', '', point)));
+      const body: Node[] = [list];
+      if (content.site.repo !== undefined) body.push(linkEl({ label: 'View the source', href: content.site.repo }));
+      panels.push(panel('ABOUT_THIS_SITE', body));
+    }
+    return panels;
+  },
 
   experience: content => [
     panel('EXPERIENCE_LOG', content.experience.length > 0
@@ -296,7 +304,12 @@ export function mountDashboard(
   const paletteOpen = button('SEARCH', () => palette.open(), 'badge palette-open');
   paletteOpen.setAttribute('aria-keyshortcuts', 'Control+K');
   const themeToggle = button('', () => applyTheme(html.dataset.theme === 'dark' ? 'light' : 'dark', true), 'badge theme-toggle');
-  badges.append(el('span', 'badge ok', 'SYS: OK'), el('span', 'badge', `${pad(content.projects.length)} PROJECTS`), clock, paletteOpen, themeToggle);
+  const github = content.contact.find(link => link.href.startsWith('https://github.com/'));
+  if (github) badges.append(linkEl({ label: 'GITHUB', href: github.href }, 'badge badge-link'));
+  if (content.resumeHref !== undefined && isSafeHref(content.resumeHref)) {
+    badges.append(linkEl({ label: 'RESUME', href: content.resumeHref }, 'badge badge-link'));
+  }
+  badges.append(clock, paletteOpen, themeToggle);
   const topbar = el('header', 'topbar');
   topbar.append(crumbs, badges);
   const view = el('main', 'view');
