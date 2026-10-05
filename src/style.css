@@ -691,9 +691,8 @@ details.entry summary:focus-visible {
   gap: 6px;
 }
 
-.tl-work { --hue: #22d3ee; }
-.tl-training { --hue: #fbbf24; }
-.tl-leadership { --hue: #a78bfa; }
+/* Every kind uses the site accent. */
+.tl-item { --hue: var(--accent); }
 
 .tl-filter {
   --hue: var(--accent);
