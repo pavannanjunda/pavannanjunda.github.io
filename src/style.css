@@ -157,6 +157,12 @@ a {
   color: var(--bright);
 }
 
+.nav-item.previewing {
+  background: var(--raised);
+  color: var(--bright);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
 .nav-item[aria-current="page"] {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);

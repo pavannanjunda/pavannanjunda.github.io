@@ -258,11 +258,13 @@ export function mountDashboard(
   for (const section of SECTIONS) {
     const item = button(section.label, () => navigate(section.id), 'nav-item');
     item.dataset.section = section.id;
+    item.addEventListener('mouseenter', () => preview(section.id));
     item.dataset.key = String(SECTIONS.indexOf(section) + 1);
     item.setAttribute('aria-keyshortcuts', item.dataset.key);
     buttons.set(section.id, item);
     nav.append(item);
   }
+  nav.addEventListener('mouseleave', () => endPreview());
   const operator = el('div', 'operator');
   const avatar = el('div', 'avatar', initials(content.name));
   avatar.setAttribute('aria-hidden', 'true');
@@ -312,19 +314,22 @@ export function mountDashboard(
     return [repos];
   };
 
-  let currentRoute: string | undefined;
+  // `pinned` is the section the visitor chose; `shown` is what is on screen,
+  // which differs while they hover another sidebar item to preview it.
+  let pinned: string | undefined;
+  let shown: string | undefined;
 
-  function render(route: string): string {
+  const resolve = (route: string): string => {
     const [id, arg] = route.toLowerCase().split('/');
     const section = SECTIONS.find(s => s.id === id) ?? SECTIONS[0];
-    const resolved = section.id === 'projects' && arg ? `projects/${arg}` : section.id;
-    if (resolved === currentRoute) return resolved;
-    currentRoute = resolved;
+    return section.id === 'projects' && arg ? `projects/${arg}` : section.id;
+  };
 
-    for (const [sectionId, item] of buttons) {
-      if (sectionId === section.id) item.setAttribute('aria-current', 'page');
-      else item.removeAttribute('aria-current');
-    }
+  function draw(resolved: string): void {
+    if (resolved === shown) return;
+    shown = resolved;
+    const [id, arg] = resolved.split('/');
+    const section = SECTIONS.find(s => s.id === id)!;
     crumbs.textContent = `ROOT / PORTFOLIO / ${section.label}`;
 
     const index = SECTIONS.indexOf(section) + 1;
@@ -336,17 +341,44 @@ export function mountDashboard(
       view.replaceChildren(hero(section.label, [section.summary], index), ...VIEWS[section.id](content, navigate, arg));
     }
     view.scrollTop = 0;
-    return resolved;
+  }
+
+  const markPreview = (id: string | undefined) => {
+    for (const [sectionId, item] of buttons) item.classList.toggle('previewing', sectionId === id);
+  };
+
+  // Hovering a sidebar item shows its section without choosing it.
+  function preview(id: string): void {
+    const pinnedId = pinned?.split('/')[0];
+    markPreview(id === pinnedId ? undefined : id);
+    draw(id === pinnedId ? pinned! : id);
+  }
+
+  function endPreview(): void {
+    markPreview(undefined);
+    if (pinned !== undefined) draw(pinned);
   }
 
   function navigate(id: string, arg?: string): void {
     show(arg ? `${id}/${arg}` : id);
   }
 
+  function pin(resolved: string): void {
+    pinned = resolved;
+    markPreview(undefined);
+    const id = resolved.split('/')[0];
+    for (const [sectionId, item] of buttons) {
+      if (sectionId === id) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    }
+    draw(resolved);
+  }
+
   function show(route: string): void {
-    const before = currentRoute;
-    const resolved = render(route);
-    if (resolved === before) return;
+    const resolved = resolve(route);
+    const changed = resolved !== pinned;
+    pin(resolved);
+    if (!changed) return;
     view.focus({ preventScroll: true });
     options?.onNavigate?.(resolved);
   }
@@ -378,7 +410,7 @@ export function mountDashboard(
     ...SECTIONS.map(section => ({ label: section.label, hint: 'section', route: section.id })),
     ...content.projects.map(project => ({ label: project.name, hint: 'project', route: `projects/${project.slug}` })),
   ], route => show(route));
-  render(options?.initialRoute ?? SECTIONS[0].id);
+  pin(resolve(options?.initialRoute ?? SECTIONS[0].id));
 
   return { show };
 }

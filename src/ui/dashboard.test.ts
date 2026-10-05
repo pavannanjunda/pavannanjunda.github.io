@@ -255,3 +255,33 @@ test('about describes how the site is built when the content says so', () => {
   expect(panel.querySelector('a[href="https://github.com/test/site"]')).not.toBeNull();
   expect(setup('about').view().textContent).not.toContain('ABOUT_THIS_SITE');
 });
+
+const hover = (el: Element) => el.dispatchEvent(new MouseEvent('mouseenter'));
+const leaveNav = (root: Element) => root.querySelector('.nav')!.dispatchEvent(new MouseEvent('mouseleave'));
+test('hovering a sidebar item previews that section without navigating', () => {
+  const { root, view, navButton, current, routes } = setup(); hover(navButton('skills'));
+  expect(view().textContent).toContain('Languages'); expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / SKILLS');
+  expect(navButton('skills').classList.contains('previewing')).toBe(true);
+  expect(current()).toBe('terminal'); expect(routes).toEqual([]);
+});
+test('hovering item after item changes the preview, and leaving the sidebar goes back', () => {
+  const { root, view, navButton } = setup(); hover(navButton('skills')); hover(navButton('about'));
+  expect(view().textContent).toContain('First paragraph.'); expect(navButton('skills').classList.contains('previewing')).toBe(false);
+  leaveNav(root); expect(view().querySelector('#cmd')).not.toBeNull(); expect(root.querySelector('.previewing')).toBeNull();
+  expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / TERMINAL');
+});
+test('clicking a previewed item keeps it, and later previews return to it', () => {
+  const { root, view, navButton, current, routes } = setup(); hover(navButton('skills')); navButton('skills').click();
+  expect(current()).toBe('skills'); expect(routes).toEqual(['skills']); expect(root.querySelector('.previewing')).toBeNull();
+  leaveNav(root); expect(view().textContent).toContain('Languages');
+  hover(navButton('about')); expect(view().textContent).toContain('First paragraph.'); expect(current()).toBe('skills');
+  leaveNav(root); expect(view().textContent).toContain('Languages'); expect(routes).toEqual(['skills']);
+});
+test('a preview does not lose the chosen project', () => {
+  const { root, view, navButton } = setup('projects/beta-arm'); hover(navButton('about')); leaveNav(root);
+  expect(view().querySelector('.project-detail')!.textContent).toContain('Beta Arm');
+});
+test('hovering the section already shown does not redraw it', () => {
+  const { view, navButton } = setup('about'); const before = view().firstElementChild; hover(navButton('about'));
+  expect(view().firstElementChild).toBe(before);
+});
