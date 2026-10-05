@@ -39,8 +39,8 @@ export const CONTENT: Content = {
   ],
 
   education: [
-    { degree: 'B.E. in AI & ML', institution: 'Cambridge Institute of Technology', start: '2022', end: '2026' },
-    { degree: 'Pre-University (PCMB)', institution: 'Christ Junior College', start: '2020', end: '2022', notes: ['94%'] },
+    { degree: 'B.E. in AI & ML', institution: 'Cambridge Institute of Technology', start: '2026', end: '2026' },
+    { degree: 'Pre-University (PCMB)', institution: 'Christ Junior College', start: '2022', end: '2022', notes: ['94%'] },
     { degree: 'SSLC / Class 10', institution: 'St Francis High School', start: '2020', end: '2020', notes: ['95%'] },
   ],
 

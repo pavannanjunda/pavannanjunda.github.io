@@ -6,14 +6,19 @@ import { History } from '../shell/history';
 import type { Line } from '../shell/output';
 import { renderLine } from './render';
 
+const MAX_HASH_COMMAND = 100;
+
+// A deep link is untrusted text that ends up on the page, so it is kept to
+// one short line.
 export function readHashCommand(hash: string): string | undefined {
-  const encoded = hash.replace(/^#/, '');
-  if (encoded === '') return undefined;
+  let decoded: string;
   try {
-    return decodeURIComponent(encoded);
+    decoded = decodeURIComponent(hash.replace(/^#/, ''));
   } catch {
     return undefined;
   }
+  const command = decoded.replace(/[\s\u0000-\u001f\u007f]+/g, ' ').trim().slice(0, MAX_HASH_COMMAND);
+  return command === '' ? undefined : command;
 }
 
 export function mountTerminal(
@@ -59,10 +64,13 @@ export function mountTerminal(
     return line;
   };
 
-  // Keep the prompt on screen, but if the output is taller than the
-  // viewport, show its start instead of its end.
+  // Scroll to the prompt at the bottom, but if the output is taller than the
+  // viewport, show its start instead of its end. The command a deep link runs
+  // at load is not scrolled to, so the banner stays on screen.
+  let mounted = false;
   const reveal = (start: HTMLElement) => {
-    form.scrollIntoView?.({ block: 'nearest' });
+    if (!mounted) return;
+    root.scrollIntoView?.({ block: 'end' });
     if (start.isConnected) start.scrollIntoView?.({ block: 'nearest' });
   };
 
@@ -92,21 +100,25 @@ export function mountTerminal(
   });
 
   input.addEventListener('keydown', event => {
-    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    if (event.isComposing) return;
+    const key = event.key ?? '';
+    if (key === 'ArrowUp' || key === 'ArrowDown') {
       event.preventDefault();
-      const entry = event.key === 'ArrowUp' ? history.prev() : history.next();
+      const entry = key === 'ArrowUp' ? history.prev() : history.next();
       if (entry !== undefined) input.value = entry;
-    } else if (event.key === 'Tab' && input.value.trim() !== '') {
-      event.preventDefault();
+    } else if (key === 'Tab' && !event.shiftKey && input.value.trim() !== '') {
       const typed = input.value;
       const { value, options: matches } = complete(typed, content);
+      // Nothing to complete: let Tab move focus as usual.
+      if (value === typed && matches.length === 0) return;
+      event.preventDefault();
       input.value = value;
       if (matches.length > 0) {
         const echoed = echo(typed);
         print([[{ text: matches.join('  ') }]]);
         reveal(echoed);
       }
-    } else if (event.key.toLowerCase() === 'l' && event.ctrlKey) {
+    } else if (key.toLowerCase() === 'l' && event.ctrlKey) {
       event.preventDefault();
       output.replaceChildren();
     }
@@ -127,6 +139,7 @@ export function mountTerminal(
     [{ text: "Type 'help' or tap a command below.", style: 'dim' }],
   ]);
   if (options?.initialCommand !== undefined) run(options.initialCommand);
+  mounted = true;
 
   return { run };
 }

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { FIXTURE } from '../content/fixture';
 import { mountTerminal, readHashCommand } from './terminal';
 
@@ -62,4 +62,37 @@ test('readHashCommand decodes a hash', () => {
 test('survives a malformed hash', () => {
   expect(readHashCommand('#%E0%A4%A')).toBeUndefined();
   const { out } = setup({ initialCommand: 'nonsense' }); expect(out()).toContain('Test User'); expect(out()).toContain('command not found: nonsense');
+});
+
+test('an initial command leaves the banner on screen, later commands scroll', () => {
+  const scroll = vi.fn(); HTMLElement.prototype.scrollIntoView = scroll;
+  try {
+    const { submit } = setup({ initialCommand: 'experience' }); expect(scroll).not.toHaveBeenCalled();
+    submit('about'); expect(scroll).toHaveBeenCalled();
+  } finally { delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView; }
+});
+test('readHashCommand flattens whitespace and caps the length', () => {
+  expect(readHashCommand('#x%0AURGENT%20%20moved%09here')).toBe('x URGENT moved here');
+  expect(readHashCommand('#' + 'a'.repeat(300))!.length).toBe(100);
+  expect(readHashCommand('#%20%0A')).toBeUndefined();
+});
+test('Shift+Tab is left to the browser', () => {
+  const { input, key } = setup(); input.value = 'pro';
+  expect(key('Tab', { shiftKey: true }).defaultPrevented).toBe(false); expect(input.value).toBe('pro');
+});
+test('Tab that completes nothing is left to the browser', () => {
+  const { input, key } = setup(); input.value = 'about x y';
+  expect(key('Tab').defaultPrevented).toBe(false);
+});
+test('keys pressed during IME composition are ignored', () => {
+  const { input, submit, key } = setup(); submit('about'); input.value = 'draft';
+  expect(key('ArrowUp', { isComposing: true }).defaultPrevented).toBe(false); expect(input.value).toBe('draft');
+});
+test('a keydown without a key does not throw', () => {
+  const { input } = setup(); const errors: unknown[] = [];
+  const onError = (e: ErrorEvent) => { errors.push(e.error); e.preventDefault(); };
+  window.addEventListener('error', onError);
+  input.dispatchEvent(new Event('keydown', { bubbles: true }));
+  window.removeEventListener('error', onError);
+  expect(errors).toEqual([]);
 });
