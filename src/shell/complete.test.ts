@@ -12,3 +12,4 @@ test('completes a project slug', () => expect(c('projects al')).toEqual({ value:
 test('lists all slugs after a bare "projects "', () => expect(c('projects ')).toEqual({ value: 'projects ', options: ['alpha-bot', 'beta-arm'] }));
 test('commands without arguments complete nothing after the name', () => expect(c('about x')).toEqual({ value: 'about x', options: [] }));
 test('is case-insensitive', () => expect(c('PRO').value).toBe('projects '));
+test('completes a section after open', () => expect(c('open sk')).toEqual({ value: 'open skills ', options: [] }));

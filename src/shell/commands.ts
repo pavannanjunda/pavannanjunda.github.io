@@ -9,6 +9,9 @@ export interface Command {
 
 const NAME_WIDTH = 12;
 
+// Dashboard sections the `open` command can switch to.
+export const OPEN_TARGETS = ['dashboard', 'about', 'experience', 'education', 'projects', 'skills', 'contact'];
+
 const text = (value: string): Line => [{ text: value }];
 const accent = (value: string): Line => [{ text: value, style: 'accent' }];
 const dim = (value: string): Line => [{ text: value, style: 'dim' }];
@@ -114,6 +117,18 @@ export const COMMANDS: Command[] = [
         ? text('No resume file published yet.')
         : linkLine({ label: 'resume.pdf', href: content.resumeHref })],
     }),
+  },
+  {
+    name: 'open', summary: 'open a section as panels',
+    args: () => OPEN_TARGETS,
+    run: args => {
+      const available = dim(`Available: ${OPEN_TARGETS.join(', ')}`);
+      if (args.length === 0) return { lines: [text('Usage: open <section>'), available] };
+      if (!OPEN_TARGETS.includes(args[0])) {
+        return { lines: [[{ text: `no such section: ${args[0]}`, style: 'error' }], available] };
+      }
+      return { lines: [dim(`Opening ${args[0]}…`)], navigate: args[0] };
+    },
   },
   { name: 'clear', summary: 'clear the screen', run: () => ({ lines: [], clear: true }) },
 ];

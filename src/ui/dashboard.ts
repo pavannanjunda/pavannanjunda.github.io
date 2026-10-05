@@ -216,6 +216,8 @@ export function mountDashboard(
   for (const section of SECTIONS) {
     const item = button(section.label, () => navigate(section.id), 'nav-item');
     item.dataset.section = section.id;
+    item.dataset.key = String(SECTIONS.indexOf(section) + 1);
+    item.setAttribute('aria-keyshortcuts', item.dataset.key);
     buttons.set(section.id, item);
     nav.append(item);
   }
@@ -229,7 +231,11 @@ export function mountDashboard(
 
   const crumbs = el('div', 'crumbs');
   const badges = el('div', 'badges');
-  badges.append(el('span', 'badge ok', 'SYS: OK'), el('span', 'badge', `${pad(content.projects.length)} PROJECTS`));
+  const clock = el('span', 'badge clock');
+  const tick = () => { clock.textContent = new Date().toLocaleTimeString('en-GB'); };
+  tick();
+  setInterval(tick, 1000);
+  badges.append(el('span', 'badge ok', 'SYS: OK'), el('span', 'badge', `${pad(content.projects.length)} PROJECTS`), clock);
   const topbar = el('header', 'topbar');
   topbar.append(crumbs, badges);
   const view = el('main', 'view');
@@ -242,7 +248,7 @@ export function mountDashboard(
   const terminalPanel = (): HTMLElement => {
     if (!terminal) {
       const host = el('div', '');
-      mountTerminal(host, content, { bare: true });
+      mountTerminal(host, content, { bare: true, onNavigate: section => navigate(section) });
       terminal = panel('TERMINAL', [host], 'terminal-panel');
     }
     return terminal;
@@ -267,7 +273,7 @@ export function mountDashboard(
     if (section.id === 'dashboard') {
       view.replaceChildren(...VIEWS.dashboard(content, navigate));
     } else if (section.id === 'terminal') {
-      view.replaceChildren(hero(section.label, [section.summary], index), terminalPanel());
+      view.replaceChildren(terminalPanel());
     } else {
       view.replaceChildren(hero(section.label, [section.summary], index), ...VIEWS[section.id](content, navigate, arg));
     }
@@ -286,6 +292,20 @@ export function mountDashboard(
     view.focus({ preventScroll: true });
     options?.onNavigate?.(resolved);
   }
+
+  // 1-8 switch sections and / jumps to the prompt, unless the visitor is typing.
+  root.ownerDocument.addEventListener('keydown', event => {
+    if (!root.isConnected || event.ctrlKey || event.metaKey || event.altKey) return;
+    if ((event.target as Element | null)?.closest?.('input, textarea, select')) return;
+    const section = SECTIONS[Number(event.key) - 1];
+    if (/^[1-9]$/.test(event.key) && section) {
+      show(section.id);
+    } else if (event.key === '/') {
+      event.preventDefault();
+      show('terminal');
+      view.querySelector<HTMLInputElement>('#cmd')?.focus();
+    }
+  });
 
   root.classList.add('dash');
   root.replaceChildren(sidebar, main);

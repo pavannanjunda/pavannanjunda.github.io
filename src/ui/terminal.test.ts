@@ -131,3 +131,13 @@ test('a bare terminal has no window chrome', () => {
   expect(root.classList.contains('window')).toBe(false); expect(root.querySelector('#cmd')).not.toBeNull();
   expect(root.querySelector('.chips')).not.toBeNull();
 });
+
+test('open reports the section to navigate to', () => {
+  const root = document.createElement('div'); const seen: string[] = [];
+  const term = mountTerminal(root, FIXTURE, { onNavigate: section => seen.push(section) });
+  term.run('open about'); term.run('open nope'); term.run('about'); expect(seen).toEqual(['about']);
+});
+test('Escape leaves the prompt', () => {
+  const { input, key } = setup(); input.focus(); expect(document.activeElement).toBe(input);
+  key('Escape'); expect(document.activeElement).not.toBe(input);
+});

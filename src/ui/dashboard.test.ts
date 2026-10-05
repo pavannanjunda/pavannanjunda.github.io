@@ -30,7 +30,7 @@ test('opens on the terminal, which is first in the sidebar', () => {
   expect(root.querySelector('.sidebar [data-section]')!.getAttribute('data-section')).toBe('terminal');
   expect(root.querySelector('.nav-group')).toBeNull();
   expect(root.querySelector('.crumbs')!.textContent).toBe('ROOT / PORTFOLIO / TERMINAL');
-  expect(view().querySelector('.hero .index')!.textContent).toBe('01');
+  expect(view().querySelector('.hero')).toBeNull();
   expect(view().querySelector('#cmd')).not.toBeNull();
 });
 test('the dashboard overview introduces the owner', () => {
@@ -116,5 +116,38 @@ test('the terminal section runs commands and keeps its history between visits', 
 test('an empty portfolio still renders every section', () => {
   const empty: Content = { ...FIXTURE, about: [], experience: [], education: [], projects: [], skills: [], contact: [], resumeHref: undefined };
   const { dash, view } = setup(undefined, empty);
-  for (const section of SECTIONS) { dash.show(section.id); expect(view().querySelector('.hero')).not.toBeNull(); }
+  for (const section of SECTIONS) { dash.show(section.id); expect(view().querySelector('.panel, .hero')).not.toBeNull(); }
+});
+
+const press = (target: EventTarget, key: string, init: KeyboardEventInit = {}) => {
+  const e = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }); target.dispatchEvent(e); return e;
+};
+test('typing open in the terminal switches section', () => {
+  const { view, current, routes } = setup();
+  view().querySelector<HTMLInputElement>('#cmd')!.value = 'open projects';
+  view().querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  expect(current()).toBe('projects'); expect(routes).toEqual(['projects']);
+});
+test('number keys switch sections', () => {
+  const { current, navButton } = setup();
+  expect(navButton('about').dataset.key).toBe('3');
+  press(document.body, '3'); expect(current()).toBe('about');
+  press(document.body, '9'); expect(current()).toBe('about');
+  press(document.body, '2', { ctrlKey: true }); expect(current()).toBe('about');
+});
+test('number keys are left alone while typing', () => {
+  const { view, current } = setup();
+  press(view().querySelector('#cmd')!, '2'); expect(current()).toBe('terminal');
+});
+test('slash jumps to the terminal prompt', () => {
+  const { view, current } = setup('about');
+  expect(press(document.body, '/').defaultPrevented).toBe(true);
+  expect(current()).toBe('terminal'); expect(document.activeElement).toBe(view().querySelector('#cmd'));
+});
+test('a dashboard that has left the page ignores keys', () => {
+  const old = setup('about'); const oldRoot = old.root; setup();
+  press(document.body, '4'); expect(oldRoot.querySelector('.sidebar [aria-current="page"]')!.getAttribute('data-section')).toBe('about');
+});
+test('the top bar shows a clock', () => {
+  expect(setup().root.querySelector('.clock')!.textContent).toMatch(/^\d\d:\d\d:\d\d$/);
 });

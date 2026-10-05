@@ -7,7 +7,7 @@ import { toText } from './output';
 const run = (s: string) => toText(execute(s, FIXTURE));
 
 test('command order is fixed', () => expect(COMMANDS.map(c => c.name)).toEqual(
-  ['help', 'about', 'experience', 'education', 'projects', 'skills', 'contact', 'resume', 'clear']));
+  ['help', 'about', 'experience', 'education', 'projects', 'skills', 'contact', 'resume', 'open', 'clear']));
 test('blank input yields no lines', () => expect(execute('  ', FIXTURE)).toEqual({ lines: [] }));
 test('help lists every command as a tappable name', () => {
   const r = execute('help', FIXTURE);
@@ -65,3 +65,12 @@ test('unknown command with a near match', () => {
 });
 test('unknown command with no near match', () => expect(run('xyzzy')).toContain("Type 'help' to see available commands."));
 test('ignores case and extra whitespace', () => expect(run('  PROJECTS   Alpha-Bot ')).toContain('Alpha Bot'));
+
+test('open asks the UI to navigate to a section', () => {
+  const r = execute('open Skills', FIXTURE); expect(r.navigate).toBe('skills'); expect(toText(r)).toContain('Opening skills');
+});
+test('open without a section, or with an unknown one, explains itself', () => {
+  const bare = execute('open', FIXTURE); expect(bare.navigate).toBeUndefined(); expect(toText(bare)).toContain('Usage: open <section>');
+  const bad = execute('open nope', FIXTURE); expect(bad.navigate).toBeUndefined();
+  expect(bad.lines[0]).toEqual([{ text: 'no such section: nope', style: 'error' }]); expect(toText(bad)).toContain('Available: dashboard, about');
+});

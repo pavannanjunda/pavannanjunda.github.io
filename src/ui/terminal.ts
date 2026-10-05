@@ -58,7 +58,7 @@ function buildIdentity(content: Content, run: (raw: string) => void): HTMLElemen
 export function mountTerminal(
   root: HTMLElement,
   content: Content,
-  options?: { initialCommand?: string; bare?: boolean },
+  options?: { initialCommand?: string; bare?: boolean; onNavigate?: (section: string) => void },
 ): { run(raw: string): void } {
   const promptText = `${content.handle}@portfolio:~$`;
   const history = new History();
@@ -113,10 +113,11 @@ export function mountTerminal(
     history.push(raw);
     input.value = '';
     reveal(echoed);
+    if (result.navigate !== undefined) options?.onNavigate?.(result.navigate);
   }
 
   for (const command of COMMANDS) {
-    if (command.name === 'clear') continue;
+    if (command.name === 'clear' || command.name === 'open') continue;
     const chip = el('button', 'chip', command.name);
     chip.type = 'button';
     chip.addEventListener('click', () => run(command.name));
@@ -147,6 +148,8 @@ export function mountTerminal(
         print([[{ text: matches.join('  ') }]]);
         reveal(echoed);
       }
+    } else if (key === 'Escape') {
+      input.blur();
     } else if (key.toLowerCase() === 'l' && event.ctrlKey) {
       event.preventDefault();
       output.replaceChildren();
